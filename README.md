@@ -1,50 +1,105 @@
-# Welcome to your Expo app 👋
+# Fast Food Delivery App 🍔
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern, cross-platform mobile application for fast food delivery built with React Native and Expo. This app allows users to browse food categories, add items to their cart, and view order statistics through an intuitive interface.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Browse Categories**: Explore different food categories like Burgers, Pizzas, Fries, and Drinks
+- **Menu Navigation**: View detailed menus for each category
+- **Shopping Cart**: Add items to cart with quantity management
+- **Cart Counter**: Real-time cart item count displayed in the header
+- **Dashboard**: View cart statistics including total items, unique items, and total price
+- **Responsive Design**: Optimized for both mobile and web platforms
+- **Dark/Light Theme**: Automatic theme switching based on device settings
 
+## Tech Stack
+
+- **Framework**: React Native with Expo
+- **Navigation**: Expo Router (file-based routing)
+- **State Management**: React Context API
+- **UI Components**: Custom themed components
+- **Icons**: Ionicons via Expo Vector Icons
+- **Styling**: React Native StyleSheet
+- **TypeScript**: Full TypeScript support
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm or yarn
+- Expo CLI
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd FastFoodDeliveryApp
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Run on your preferred platform:
+   - **iOS Simulator**: Press `i` in the terminal
+   - **Android Emulator**: Press `a` in the terminal
+   - **Web Browser**: Press `w` in the terminal
+   - **Expo Go App**: Scan the QR code with Expo Go
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+FastFoodDeliveryApp/
+├── app/                    # Main application screens (file-based routing)
+│   ├── (tabs)/            # Tab navigation screens
+│   │   ├── _layout.tsx    # Tab layout configuration
+│   │   ├── index.tsx      # Home screen with categories
+│   │   ├── menu.tsx       # Menu screen
+│   │   ├── cart.tsx       # Shopping cart screen
+│   │   └── stats.tsx      # Dashboard/statistics screen
+│   └── _layout.tsx        # Root layout
+├── components/            # Reusable UI components
+│   ├── haptic-tab.tsx
+│   ├── parallax-scroll-view.tsx
+│   ├── themed-text.tsx
+│   ├── themed-view.tsx
+│   └── ui/
+├── contexts/              # React Context providers
+│   └── CartContext.tsx    # Cart state management
+├── hooks/                 # Custom React hooks
+├── constants/             # App constants and configuration
+└── assets/                # Static assets (images, fonts)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Key Components
 
-## Learn more
+- **CartContext**: Manages cart state across the application
+- **Themed Components**: Consistent theming with light/dark mode support
+- **ParallaxScrollView**: Enhanced scroll view with header image
+- **HapticTab**: Custom tab component with haptic feedback
 
-To learn more about developing your project with Expo, look at the following resources:
+## Contributing
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Join the community
+## License
 
-Join our community of developers creating universal apps.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Acknowledgments
+
+- Built with [Expo](https://expo.dev)
+- Icons from [Ionicons](https://ionic.io/ionicons)
+- Images from [Unsplash](https://unsplash.com)

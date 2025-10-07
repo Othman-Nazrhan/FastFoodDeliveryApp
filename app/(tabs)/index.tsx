@@ -1,13 +1,71 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useCart } from '@/contexts/CartContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
+
+interface Category {
+  id: string;
+  name: string;
+  image: string;
+  icon: string;
+}
+
+const categories: Category[] = [
+  {
+    id: 'burgers',
+    name: 'Burgers',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+    icon: 'fast-food-outline',
+  },
+  {
+    id: 'pizzas',
+    name: 'Pizzas',
+    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
+    icon: 'pizza-outline',
+  },
+  {
+    id: 'fries',
+    name: 'Fries',
+    image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400',
+    icon: 'restaurant-outline',
+  },
+  {
+    id: 'drinks',
+    name: 'Drinks',
+    image: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400',
+    icon: 'wine-outline',
+  },
+];
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { setSelectedCategory } = useCart();
+  const tintColor = useThemeColor({}, 'tint');
+
+  const handleCategoryPress = (category: string) => {
+    setSelectedCategory(category);
+    router.push('/menu');
+  };
+
+  const renderCategory = ({ item }: { item: Category }) => (
+    <TouchableOpacity
+      style={styles.categoryCard}
+      onPress={() => handleCategoryPress(item.id)}
+    >
+      <Image source={{ uri: item.image }} style={styles.categoryImage} />
+      <Ionicons name={item.icon as any} size={32} color={tintColor} style={styles.categoryIcon} />
+      <ThemedText type="subtitle" style={styles.categoryName}>
+        {item.name}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -18,61 +76,19 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Fast Food Delivery</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+      <ThemedView style={styles.categoriesContainer}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Categories
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+        <FlatList
+          data={categories}
+          renderItem={renderCategory}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.categoriesList}
+        />
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -83,10 +99,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 20,
   },
-  stepContainer: {
-    gap: 8,
+  categoriesContainer: {
+    flex: 1,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  categoriesList: {
+    paddingHorizontal: 16,
+  },
+  categoryCard: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  categoryImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
     marginBottom: 8,
+  },
+  categoryIcon: {
+    marginBottom: 8,
+  },
+  categoryName: {
+    textAlign: 'center',
   },
   reactLogo: {
     height: 178,
