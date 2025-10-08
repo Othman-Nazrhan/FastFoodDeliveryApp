@@ -1,13 +1,18 @@
-import { Alert, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CartItem, useCart } from '@/contexts/CartContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Alert, FlatList, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function CartScreen() {
   const { state, removeFromCart, increaseQuantity, decreaseQuantity, clearCart, getTotal } = useCart();
   const { items } = state;
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadow');
+  const primary = useThemeColor({}, 'primary');
+  const danger = useThemeColor({}, 'danger');
+  const success = useThemeColor({}, 'success');
+  const buttonText = useThemeColor({}, 'buttonText');
 
   const handleRemoveFromCart = (id: string) => {
     removeFromCart(id);
@@ -18,12 +23,12 @@ export default function CartScreen() {
       Alert.alert('Cart is empty', 'Add some items to your cart first!');
       return;
     }
-    Alert.alert('Order Placed', 'Your order has been placed successfully!');
+    Alert.alert('Thank You!', 'Your order has been placed successfully! We appreciate your business.');
     clearCart();
   };
 
   const renderItem = ({ item }: { item: CartItem }) => (
-    <ThemedView style={styles.cartItem}>
+    <ThemedView style={[styles.cartItem, { backgroundColor: cardBackground, shadowColor }]}>
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <ThemedView style={styles.itemDetails}>
         <ThemedText type="subtitle" style={styles.itemName}>
@@ -34,10 +39,10 @@ export default function CartScreen() {
         </ThemedText>
         <ThemedView style={styles.quantityContainer}>
           <TouchableOpacity
-            style={styles.quantityButton}
+            style={[styles.quantityButton, { backgroundColor: primary }]}
             onPress={() => decreaseQuantity(item.id)}
           >
-            <ThemedText type="defaultSemiBold" style={styles.quantityButtonText}>
+            <ThemedText type="defaultSemiBold" style={[styles.quantityButtonText, { color: buttonText }]}>
               -
             </ThemedText>
           </TouchableOpacity>
@@ -45,20 +50,20 @@ export default function CartScreen() {
             {item.quantity}
           </ThemedText>
           <TouchableOpacity
-            style={styles.quantityButton}
+            style={[styles.quantityButton, { backgroundColor: primary }]}
             onPress={() => increaseQuantity(item.id)}
           >
-            <ThemedText type="defaultSemiBold" style={styles.quantityButtonText}>
+            <ThemedText type="defaultSemiBold" style={[styles.quantityButtonText, { color: buttonText }]}>
               +
             </ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
       <TouchableOpacity
-        style={styles.removeButton}
+        style={[styles.removeButton, { backgroundColor: danger }]}
         onPress={() => handleRemoveFromCart(item.id)}
       >
-        <ThemedText type="defaultSemiBold" style={styles.removeButtonText}>
+        <ThemedText type="defaultSemiBold" style={[styles.removeButtonText, { color: buttonText }]}>
           Remove
         </ThemedText>
       </TouchableOpacity>
@@ -66,9 +71,7 @@ export default function CartScreen() {
   );
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={<ThemedView style={styles.headerPlaceholder} />}>
+    <ScrollView style={{ flex: 1 }}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Your Cart</ThemedText>
       </ThemedView>
@@ -83,27 +86,25 @@ export default function CartScreen() {
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.cartList}
+            scrollEnabled={false}
           />
           <ThemedView style={styles.totalContainer}>
             <ThemedText type="title" style={styles.totalText}>
               Total: ${getTotal().toFixed(2)}
             </ThemedText>
-            <TouchableOpacity style={styles.orderButton} onPress={handlePlaceOrder}>
-              <ThemedText type="defaultSemiBold" style={styles.orderButtonText}>
+            <TouchableOpacity style={[styles.orderButton, { backgroundColor: success }]} onPress={handlePlaceOrder}>
+              <ThemedText type="defaultSemiBold" style={[styles.orderButtonText, { color: buttonText }]}>
                 Place Order
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </>
       )}
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerPlaceholder: {
-    flex: 1,
-  },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -121,10 +122,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     margin: 8,
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

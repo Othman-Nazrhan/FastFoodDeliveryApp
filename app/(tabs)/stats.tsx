@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import { useCart } from '@/contexts/CartContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { ScrollView, StyleSheet } from 'react-native';
 
 export default function StatsScreen() {
   const { state, getTotal } = useCart();
@@ -11,28 +12,29 @@ export default function StatsScreen() {
   const totalPrice = getTotal();
   const uniqueItems = items.length;
 
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadow');
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={<View style={styles.headerPlaceholder} />}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Dashboard</Text>
-      </View>
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.subtitle}>Total Items in Cart</Text>
-          <Text style={styles.title}>{totalItems}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.subtitle}>Unique Items</Text>
-          <Text style={styles.title}>{uniqueItems}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.subtitle}>Total Price</Text>
-          <Text style={styles.title}>${totalPrice.toFixed(2)}</Text>
-        </View>
-      </View>
-    </ParallaxScrollView>
+    <ScrollView style={{ flex: 1 }}>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Dashboard</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.statsContainer}>
+        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+          <ThemedText type="subtitle">Total Items in Cart</ThemedText>
+          <ThemedText type="title">{totalItems}</ThemedText>
+        </ThemedView>
+        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+          <ThemedText type="subtitle">Unique Items</ThemedText>
+          <ThemedText type="title">{uniqueItems}</ThemedText>
+        </ThemedView>
+        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+          <ThemedText type="subtitle">Total Price</ThemedText>
+          <ThemedText type="title">${totalPrice.toFixed(2)}</ThemedText>
+        </ThemedView>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
@@ -45,24 +47,13 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 20,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   statsContainer: {
     paddingHorizontal: 16,
   },
   statCard: {
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
