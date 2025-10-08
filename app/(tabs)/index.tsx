@@ -2,12 +2,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Dimensions, FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useCart } from '@/contexts/CartContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { indexStyles } from '@/styles/indexStyles';
 
 interface Category {
   id: string;
@@ -70,21 +71,21 @@ export default function HomeScreen() {
   };
 
   const renderSliderItem = ({ item }: { item: { id: string; image: string; title: string } }) => (
-    <View style={styles.sliderItem}>
-      <Image source={{ uri: item.image }} style={styles.sliderImage} />
-      <View style={styles.sliderOverlay}>
-        <ThemedText type="title" style={styles.sliderTitle}>{item.title}</ThemedText>
+    <View style={indexStyles.sliderItem}>
+      <Image source={{ uri: item.image }} style={indexStyles.sliderImage} />
+      <View style={indexStyles.sliderOverlay}>
+        <ThemedText type="title" style={indexStyles.sliderTitle}>{item.title}</ThemedText>
       </View>
     </View>
   );
 
   const renderIndicators = () => (
-    <View style={styles.indicators}>
+    <View style={indexStyles.indicators}>
       {sliderImages.map((_, index) => (
         <View
           key={index}
           style={[
-            styles.indicator,
+            indexStyles.indicator,
             { backgroundColor: index === currentIndex ? tintColor : '#ccc' },
           ]}
         />
@@ -94,12 +95,12 @@ export default function HomeScreen() {
 
   const renderCategory = ({ item }: { item: Category }) => (
     <TouchableOpacity
-      style={[styles.categoryCard, { backgroundColor: cardBackground, shadowColor }]}
+      style={[indexStyles.categoryCard, { backgroundColor: cardBackground, shadowColor }]}
       onPress={() => handleCategoryPress(item.id)}
     >
-      <Image source={{ uri: item.image }} style={styles.categoryImage} />
-      <Ionicons name={item.icon as any} size={32} color={tintColor} style={styles.categoryIcon} />
-      <ThemedText type="subtitle" style={styles.categoryName}>
+      <Image source={{ uri: item.image }} style={indexStyles.categoryImage} />
+      <Ionicons name={item.icon as any} size={32} color={tintColor} style={indexStyles.categoryIcon} />
+      <ThemedText type="subtitle" style={indexStyles.categoryName}>
         {item.name}
       </ThemedText>
     </TouchableOpacity>
@@ -107,10 +108,10 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={{ flex: 1 }}>
-      <ThemedView style={styles.titleContainer}>
+      <ThemedView style={indexStyles.titleContainer}>
         <ThemedText type="title">Fast Food Delivery</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.sliderContainer}>
+      <ThemedView style={indexStyles.sliderContainer}>
         <FlatList
           data={sliderImages}
           renderItem={renderSliderItem}
@@ -123,8 +124,8 @@ export default function HomeScreen() {
         />
         {renderIndicators()}
       </ThemedView>
-      <ThemedView style={styles.categoriesContainer}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
+      <ThemedView style={indexStyles.categoriesContainer}>
+        <ThemedText type="subtitle" style={indexStyles.sectionTitle}>
           Categories
         </ThemedText>
         <FlatList
@@ -132,97 +133,9 @@ export default function HomeScreen() {
           renderItem={renderCategory}
           keyExtractor={(item) => item.id}
           numColumns={2}
-          contentContainerStyle={styles.categoriesList}
+          contentContainerStyle={indexStyles.categoriesList}
         />
       </ThemedView>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-    paddingHorizontal: 32,
-  },
-  sliderContainer: {
-    marginBottom: 16,
-    paddingHorizontal: 32,
-  },
-  sliderItem: {
-    width: Dimensions.get('window').width - 64,
-    height: 200,
-  },
-  sliderImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-  },
-  sliderOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 16,
-  },
-  sliderTitle: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  indicators: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  categoriesContainer: {
-    flex: 1,
-    paddingHorizontal: 32,
-  },
-  sectionTitle: {
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  categoriesList: {
-    paddingHorizontal: 0,
-  },
-  categoryCard: {
-    flex: 1,
-    margin: 8,
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  categoryImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  categoryIcon: {
-    marginBottom: 8,
-  },
-  categoryName: {
-    textAlign: 'center',
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});

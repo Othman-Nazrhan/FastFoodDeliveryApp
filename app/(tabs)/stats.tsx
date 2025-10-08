@@ -2,7 +2,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useCart } from '@/contexts/CartContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { ScrollView, StyleSheet } from 'react-native';
+import { statsStyles } from '@/styles/statsStyles';
+import { ScrollView } from 'react-native';
 
 export default function StatsScreen() {
   const { state, getTotal } = useCart();
@@ -17,19 +18,19 @@ export default function StatsScreen() {
 
   return (
     <ScrollView style={{ flex: 1 }}>
-      <ThemedView style={styles.titleContainer}>
+      <ThemedView style={statsStyles.titleContainer}>
         <ThemedText type="title">Dashboard</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.statsContainer}>
-        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+      <ThemedView style={statsStyles.statsContainer}>
+        <ThemedView style={[statsStyles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
           <ThemedText type="subtitle">Total Items in Cart</ThemedText>
           <ThemedText type="title">{totalItems}</ThemedText>
         </ThemedView>
-        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+        <ThemedView style={[statsStyles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
           <ThemedText type="subtitle">Unique Items</ThemedText>
           <ThemedText type="title">{uniqueItems}</ThemedText>
         </ThemedView>
-        <ThemedView style={[styles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
+        <ThemedView style={[statsStyles.statCard, { backgroundColor: cardBackground, shadowColor }]}>
           <ThemedText type="subtitle">Total Price</ThemedText>
           <ThemedText type="title">${totalPrice.toFixed(2)}</ThemedText>
         </ThemedView>
@@ -37,27 +38,3 @@ export default function StatsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  headerPlaceholder: {
-    flex: 1,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-  },
-  statsContainer: {
-    paddingHorizontal: 16,
-  },
-  statCard: {
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    alignItems: 'center',
-  },
-});
