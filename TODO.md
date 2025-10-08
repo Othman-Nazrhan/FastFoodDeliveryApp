@@ -1,24 +1,9 @@
-# Fast Food Delivery App Implementation
+# Dark Mode Adaptation Tasks
 
-## Tasks
-- [x] Create CartContext for state management
-- [x] Update app/_layout.tsx to include CartProvider
-- [x] Modify app/(tabs)/_layout.tsx: Add Cart tab, rename Explore to Menu
-- [x] Rename app/(tabs)/explore.tsx to menu.tsx
-- [x] Update app/(tabs)/index.tsx: Implement categories screen
-- [x] Update app/(tabs)/menu.tsx: Implement menu items screen
-- [x] Create app/(tabs)/cart.tsx: Implement cart screen
-- [x] Test navigation and cart functionality
-- [x] Run the app with expo start
-
-## Design Upgrade Tasks
-- [x] Upgrade home screen design: Add icons, improve colors, gradients, better spacing
-- [x] Upgrade menu screen design: Enhance item cards, add descriptions, better buttons
-- [x] Upgrade cart screen design: Add quantity controls, images, better layout
-- [x] Add icons to tab navigation
-- [x] Test the upgraded design
-
-## Personal Notes and Stats Dashboard
-- [ ] Create notes.tsx: New tab component for managing personal notes
-- [x] Create stats.tsx: New tab component showing simple statistics (total cached jobs, tracked jobs, jobs with notes)
-- [x] Update _layout.tsx: Add tracked and stats tabs to the tab navigator
+- [x] Update constants/theme.ts to add semantic colors (primary, secondary, danger, muted, cardBackground, shadow)
+- [x] Refactor app/(tabs)/index.tsx to use themed colors for categoryCard background, shadow, and other hardcoded colors
+- [x] Refactor app/(tabs)/menu.tsx to use themed colors for itemCard, addButton, itemDescription, itemPrice, and other hardcoded colors
+- [x] Refactor app/(tabs)/cart.tsx to use themed colors for cartItem, quantityButton, removeButton, orderButton, and other hardcoded colors
+- [x] Refactor app/(tabs)/stats.tsx to replace Text and View with ThemedText and ThemedView, and use themed colors for statCard
+- [ ] Test the app in both light and dark modes to verify UI adapts correctly
+- [ ] Fix any styling issues or color contrast problems found during testing

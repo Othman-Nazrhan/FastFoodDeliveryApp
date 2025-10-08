@@ -1,9 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
+import { Dimensions, FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useCart } from '@/contexts/CartContext';
@@ -15,6 +15,12 @@ interface Category {
   image: string;
   icon: string;
 }
+
+const sliderImages = [
+  { id: '1', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800', title: 'Delicious Burgers' },
+  { id: '2', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800', title: 'Hot Pizzas' },
+  { id: '3', image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800', title: 'Crispy Fries' },
+];
 
 const categories: Category[] = [
   {
@@ -47,15 +53,48 @@ export default function HomeScreen() {
   const router = useRouter();
   const { setSelectedCategory } = useCart();
   const tintColor = useThemeColor({}, 'tint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadow');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleCategoryPress = (category: string) => {
     setSelectedCategory(category);
     router.push('/menu');
   };
 
+  const handleScroll = (event: any) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setCurrentIndex(roundIndex);
+  };
+
+  const renderSliderItem = ({ item }: { item: { id: string; image: string; title: string } }) => (
+    <View style={styles.sliderItem}>
+      <Image source={{ uri: item.image }} style={styles.sliderImage} />
+      <View style={styles.sliderOverlay}>
+        <ThemedText type="title" style={styles.sliderTitle}>{item.title}</ThemedText>
+      </View>
+    </View>
+  );
+
+  const renderIndicators = () => (
+    <View style={styles.indicators}>
+      {sliderImages.map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.indicator,
+            { backgroundColor: index === currentIndex ? tintColor : '#ccc' },
+          ]}
+        />
+      ))}
+    </View>
+  );
+
   const renderCategory = ({ item }: { item: Category }) => (
     <TouchableOpacity
-      style={styles.categoryCard}
+      style={[styles.categoryCard, { backgroundColor: cardBackground, shadowColor }]}
       onPress={() => handleCategoryPress(item.id)}
     >
       <Image source={{ uri: item.image }} style={styles.categoryImage} />
@@ -67,16 +106,22 @@ export default function HomeScreen() {
   );
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
+    <ScrollView style={{ flex: 1 }}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Fast Food Delivery</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.sliderContainer}>
+        <FlatList
+          data={sliderImages}
+          renderItem={renderSliderItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        />
+        {renderIndicators()}
       </ThemedView>
       <ThemedView style={styles.categoriesContainer}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -90,7 +135,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.categoriesList}
         />
       </ThemedView>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
@@ -99,26 +144,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 16,
+    paddingHorizontal: 32,
+  },
+  sliderContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 32,
+  },
+  sliderItem: {
+    width: Dimensions.get('window').width - 64,
+    height: 200,
+  },
+  sliderImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  sliderOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 16,
+  },
+  sliderTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  indicators: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
   categoriesContainer: {
     flex: 1,
+    paddingHorizontal: 32,
   },
   sectionTitle: {
     marginBottom: 16,
     textAlign: 'center',
   },
   categoriesList: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
   },
   categoryCard: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

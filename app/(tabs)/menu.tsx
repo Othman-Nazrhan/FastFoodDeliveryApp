@@ -1,10 +1,9 @@
-import { Image } from 'expo-image';
-import { Alert, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FoodItem, useCart } from '@/contexts/CartContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Image } from 'expo-image';
+import { Alert, FlatList, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 const foodItems: { [key: string]: FoodItem[] } = {
   burgers: [
@@ -68,6 +67,11 @@ const foodItems: { [key: string]: FoodItem[] } = {
 export default function MenuScreen() {
   const { state, addToCart } = useCart();
   const selectedCategory = state.selectedCategory;
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadow');
+  const muted = useThemeColor({}, 'muted');
+  const primary = useThemeColor({}, 'primary');
+  const buttonText = useThemeColor({}, 'buttonText');
 
   if (!selectedCategory) {
     return (
@@ -85,19 +89,19 @@ export default function MenuScreen() {
   };
 
   const renderItem = ({ item }: { item: FoodItem }) => (
-    <ThemedView style={styles.itemCard}>
+    <ThemedView style={[styles.itemCard, { backgroundColor: cardBackground, shadowColor }]}>
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <ThemedText type="subtitle" style={styles.itemName}>
         {item.name}
       </ThemedText>
-      <ThemedText type="default" style={styles.itemDescription}>
+      <ThemedText type="default" style={[styles.itemDescription, { color: muted }]}>
         {item.description}
       </ThemedText>
-      <ThemedText type="defaultSemiBold" style={styles.itemPrice}>
+      <ThemedText type="defaultSemiBold" style={[styles.itemPrice, { color: primary }]}>
         ${item.price.toFixed(2)}
       </ThemedText>
-      <TouchableOpacity style={styles.addButton} onPress={() => handleAddToCart(item)}>
-        <ThemedText type="defaultSemiBold" style={styles.addButtonText}>
+      <TouchableOpacity style={[styles.addButton, { backgroundColor: primary }]} onPress={() => handleAddToCart(item)}>
+        <ThemedText type="defaultSemiBold" style={[styles.addButtonText, { color: buttonText }]}>
           Add to Cart
         </ThemedText>
       </TouchableOpacity>
@@ -105,14 +109,7 @@ export default function MenuScreen() {
   );
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.headerImage}
-        />
-      }>
+    <ScrollView style={{ flex: 1 }}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Menu</ThemedText>
       </ThemedView>
@@ -122,12 +119,17 @@ export default function MenuScreen() {
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.itemsList}
+        scrollEnabled={false}
       />
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  headerPlaceholder: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -144,11 +146,9 @@ const styles = StyleSheet.create({
   itemCard: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -168,21 +168,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     fontSize: 14,
-    color: '#666',
   },
   itemPrice: {
     textAlign: 'center',
     marginBottom: 8,
-    color: '#007bff',
   },
   addButton: {
-    backgroundColor: '#007bff',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   addButtonText: {
-    color: '#fff',
   },
   headerImage: {
     height: 178,

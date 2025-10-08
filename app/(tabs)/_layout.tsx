@@ -1,8 +1,9 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useCart } from '@/contexts/CartContext';
@@ -10,30 +11,14 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const { state } = useCart();
-  const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-
-  const CartHeader = () => (
-    <TouchableOpacity
-      onPress={() => router.push('/cart')}
-      style={styles.cartButton}
-    >
-      <IconSymbol size={24} name="bag.fill" color={Colors[colorScheme ?? 'light'].tint} />
-      {totalItems > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{totalItems}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  const totalItems = state.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: true,
-        headerRight: () => <CartHeader />,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
@@ -52,6 +37,22 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cart',
+          tabBarIcon: ({ color }) => (
+            <View>
+              <IconSymbol size={28} name="bag.fill" color={color} />
+              {totalItems > 0 && (
+                <View style={styles.badge}>
+                  <ThemedText style={styles.badgeText}>{totalItems}</ThemedText>
+                </View>
+              )}
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="stats"
         options={{
           title: 'Dashboard',
@@ -63,24 +64,22 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  cartButton: {
-    marginRight: 16,
-    position: 'relative',
-  },
   badge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    right: -6,
+    top: -3,
     backgroundColor: 'red',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: 6,
+    width: 12,
+    height: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 8,
     fontWeight: 'bold',
   },
 });
+
+
