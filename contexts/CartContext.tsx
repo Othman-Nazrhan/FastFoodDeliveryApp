@@ -7,15 +7,36 @@ export interface FoodItem {
   image: string;
   category: string;
   description: string;
+  rating: number;
+  isVegetarian?: boolean;
 }
 
 export interface CartItem extends FoodItem {
   quantity: number;
 }
 
+export interface OrderHistory {
+  id: string;
+  items: CartItem[];
+  total: number;
+  date: string;
+  deliveryTime: number;
+}
+
+export interface UserSettings {
+  notifications: boolean;
+  vegetarianOnly: boolean;
+  name: string;
+  address: string;
+}
+
 interface CartState {
   items: CartItem[];
   selectedCategory: string | null;
+  favorites: string[];
+  ratings: { [key: string]: number };
+  orderHistory: OrderHistory[];
+  settings: UserSettings;
 }
 
 type CartAction =
@@ -24,7 +45,11 @@ type CartAction =
   | { type: 'INCREASE_QUANTITY'; id: string }
   | { type: 'DECREASE_QUANTITY'; id: string }
   | { type: 'CLEAR_CART' }
-  | { type: 'SET_CATEGORY'; category: string };
+  | { type: 'SET_CATEGORY'; category: string }
+  | { type: 'TOGGLE_FAVORITE'; id: string }
+  | { type: 'RATE_ITEM'; id: string; rating: number }
+  | { type: 'ADD_ORDER'; order: OrderHistory }
+  | { type: 'UPDATE_SETTINGS'; settings: Partial<UserSettings> };
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -72,6 +97,29 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       return { ...state, items: [] };
     case 'SET_CATEGORY':
       return { ...state, selectedCategory: action.category };
+    case 'TOGGLE_FAVORITE':
+      const isFavorite = state.favorites.includes(action.id);
+      return {
+        ...state,
+        favorites: isFavorite
+          ? state.favorites.filter(id => id !== action.id)
+          : [...state.favorites, action.id],
+      };
+    case 'RATE_ITEM':
+      return {
+        ...state,
+        ratings: { ...state.ratings, [action.id]: action.rating },
+      };
+    case 'ADD_ORDER':
+      return {
+        ...state,
+        orderHistory: [action.order, ...state.orderHistory],
+      };
+    case 'UPDATE_SETTINGS':
+      return {
+        ...state,
+        settings: { ...state.settings, ...action.settings },
+      };
     default:
       return state;
   }
@@ -86,10 +134,29 @@ const CartContext = createContext<{
   clearCart: () => void;
   getTotal: () => number;
   setSelectedCategory: (category: string) => void;
+  toggleFavorite: (id: string) => void;
+  rateItem: (id: string, rating: number) => void;
+  addOrder: (order: OrderHistory) => void;
+  updateSettings: (settings: Partial<UserSettings>) => void;
+  getEstimatedDeliveryTime: () => number;
 } | null>(null);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], selectedCategory: null });
+  const defaultSettings: UserSettings = {
+    notifications: true,
+    vegetarianOnly: false,
+    name: '',
+    address: '',
+  };
+
+  const [state, dispatch] = useReducer(cartReducer, {
+    items: [],
+    selectedCategory: null,
+    favorites: [],
+    ratings: {},
+    orderHistory: [],
+    settings: defaultSettings,
+  });
 
   const addToCart = (item: FoodItem) => {
     dispatch({ type: 'ADD_ITEM', item });
@@ -119,8 +186,44 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'SET_CATEGORY', category });
   };
 
+  const toggleFavorite = (id: string) => {
+    dispatch({ type: 'TOGGLE_FAVORITE', id });
+  };
+
+  const rateItem = (id: string, rating: number) => {
+    dispatch({ type: 'RATE_ITEM', id, rating });
+  };
+
+  const addOrder = (order: OrderHistory) => {
+    dispatch({ type: 'ADD_ORDER', order });
+  };
+
+  const updateSettings = (settings: Partial<UserSettings>) => {
+    dispatch({ type: 'UPDATE_SETTINGS', settings });
+  };
+
+  const getEstimatedDeliveryTime = () => {
+    const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+    // Base time 15 min + 2 min per item
+    return 15 + totalItems * 2;
+  };
+
   return (
-    <CartContext.Provider value={{ state, addToCart, removeFromCart, increaseQuantity, decreaseQuantity, clearCart, getTotal, setSelectedCategory }}>
+    <CartContext.Provider value={{
+      state,
+      addToCart,
+      removeFromCart,
+      increaseQuantity,
+      decreaseQuantity,
+      clearCart,
+      getTotal,
+      setSelectedCategory,
+      toggleFavorite,
+      rateItem,
+      addOrder,
+      updateSettings,
+      getEstimatedDeliveryTime
+    }}>
       {children}
     </CartContext.Provider>
   );

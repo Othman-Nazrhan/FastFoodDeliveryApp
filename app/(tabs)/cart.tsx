@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CartItem, useCart } from '@/contexts/CartContext';
+import { useNotifications } from '@/hooks/use-notifications';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { cartStyles } from '@/styles/cartStyles';
 import { useState } from 'react';
@@ -16,6 +17,7 @@ export default function CartScreen() {
   const success = useThemeColor({}, 'success');
   const buttonText = useThemeColor({}, 'buttonText');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const { scheduleNotification } = useNotifications();
 
   const handleRemoveFromCart = (id: string) => {
     removeFromCart(id);
@@ -31,6 +33,12 @@ export default function CartScreen() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     Alert.alert('Thank You!', 'Your order has been placed successfully! We appreciate your business.');
     clearCart();
+    // Send push notification for order confirmation
+    await scheduleNotification(
+      'Order Confirmed! 🎉',
+      `Your order for ${items.length} item(s) totaling $${getTotal().toFixed(2)} has been placed successfully.`,
+      { type: 'order_confirmation', orderId: Date.now().toString() }
+    );
     setIsPlacingOrder(false);
   };
 
