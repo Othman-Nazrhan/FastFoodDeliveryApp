@@ -1,10 +1,8 @@
-import { Colors } from '@/constants/theme';
 import { StyleSheet } from 'react-native';
 
 export const usersStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   header: {
     padding: 20,
@@ -12,7 +10,6 @@ export const usersStyles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.light.secondary,
     marginTop: 4,
   },
   listContainer: {
@@ -23,7 +20,7 @@ export const usersStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderRadius: 12,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -44,7 +41,6 @@ export const usersStyles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 14,
-    color: Colors.light.secondary,
     marginBottom: 8,
   },
   userStats: {
@@ -53,7 +49,15 @@ export const usersStyles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: Colors.light.primary,
     fontWeight: '500',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+    borderRadius: 6,
   },
 });

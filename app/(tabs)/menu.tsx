@@ -9,6 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -153,6 +154,12 @@ export default function MenuScreen() {
     setNewItem({ name: '', description: '', price: '', image: '' });
   };
 
+  const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleCartPress = () => {
+    router.push('/cart');
+  };
+
   return (
     <LinearGradient
       colors={['#2c3e50', '#34495e']} // Dark gradient background
@@ -253,6 +260,23 @@ export default function MenuScreen() {
           </View>
         </Modal>
       </ScrollView>
+
+      {/* Floating Cart Button */}
+      {totalItems > 0 && (
+        <TouchableOpacity
+          style={[menuStyles.floatingCartButton, { backgroundColor: primary }]}
+          onPress={handleCartPress}
+          accessibilityLabel={`View cart with ${totalItems} items`}
+          accessibilityRole="button"
+        >
+          <Ionicons name="cart-outline" size={24} color={buttonText} />
+          <View style={menuStyles.cartBadge}>
+            <ThemedText type="defaultSemiBold" style={menuStyles.cartBadgeText}>
+              {totalItems}
+            </ThemedText>
+          </View>
+        </TouchableOpacity>
+      )}
     </LinearGradient>
   );
 }

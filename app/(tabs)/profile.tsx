@@ -1,11 +1,12 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Input } from '@/components/ui/Input';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { profileStyles } from '@/styles/profileStyles';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
@@ -166,7 +167,7 @@ interface ProfileFieldProps {
   value: string;
   onChangeText: (text: string) => void;
   editable: boolean;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   keyboardType?: 'default' | 'email-address' | 'phone-pad';
   multiline?: boolean;
 }
@@ -174,20 +175,23 @@ interface ProfileFieldProps {
 function ProfileField({ label, value, onChangeText, editable, icon, keyboardType = 'default', multiline = false }: ProfileFieldProps) {
   const muted = useThemeColor({}, 'muted');
   const primary = useThemeColor({}, 'primary');
-  const background = useThemeColor({}, 'background');
 
   return (
     <View style={profileStyles.fieldContainer}>
       <View style={profileStyles.fieldHeader}>
-        <Ionicons name={icon as any} size={20} color={primary} style={{ marginRight: 8 }} />
+        <Ionicons name={icon} size={20} color={primary} style={{ marginRight: 8 }} />
         <ThemedText type="defaultSemiBold" style={[profileStyles.fieldLabel, { color: primary }]}>
           {label}
         </ThemedText>
       </View>
       {editable ? (
-        <View style={[profileStyles.inputContainer, { backgroundColor: background }]}>
-          <ThemedText style={[profileStyles.input, { color: muted }]}>{value}</ThemedText>
-        </View>
+        <Input
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={`Enter ${label.toLowerCase()}`}
+          keyboardType={keyboardType}
+          multiline={multiline}
+        />
       ) : (
         <ThemedText style={[profileStyles.fieldValue, { color: muted }]}>
           {value}

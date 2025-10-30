@@ -2,12 +2,15 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useCart } from '@/contexts/CartContext';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { orderStyles } from '@/styles/orderStyles';
 import { useState } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 
 export default function OrdersScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
   const { state } = useCart();
   const { orderHistory } = state;
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -25,14 +28,14 @@ export default function OrdersScreen() {
     <ThemedView style={[orderStyles.orderCard, { backgroundColor: cardBackground, shadowColor }]}>
       <ThemedView style={orderStyles.orderHeader}>
         <ThemedText type="subtitle">Order #{item.id}</ThemedText>
-        <ThemedText style={{ color: Colors.light.primary }}>${item.total.toFixed(2)}</ThemedText>
+        <ThemedText style={{ color: colors.primary }}>${item.total.toFixed(2)}</ThemedText>
       </ThemedView>
       <ThemedText style={orderStyles.orderDate}>{item.date}</ThemedText>
       <ThemedText style={orderStyles.orderItems}>
         {item.items.length} items • {item.deliveryTime} min delivery
       </ThemedText>
       <TouchableOpacity style={orderStyles.viewDetailsButton}>
-        <ThemedText style={{ color: Colors.light.primary }}>View Details</ThemedText>
+        <ThemedText style={{ color: colors.primary }}>View Details</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -46,22 +49,22 @@ export default function OrdersScreen() {
       {/* Filters */}
       <ThemedView style={orderStyles.filterContainer}>
         <TouchableOpacity
-          style={[orderStyles.filterButton, filter === 'all' && { backgroundColor: Colors.light.primary }]}
+          style={[orderStyles.filterButton, filter === 'all' && { backgroundColor: colors.primary }]}
           onPress={() => setFilter('all')}
         >
-          <ThemedText style={[orderStyles.filterText, filter === 'all' && { color: Colors.light.buttonText }]}>All</ThemedText>
+          <ThemedText style={[orderStyles.filterText, filter === 'all' && { color: colors.buttonText }]}>All</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[orderStyles.filterButton, filter === 'pending' && { backgroundColor: Colors.light.primary }]}
+          style={[orderStyles.filterButton, filter === 'pending' && { backgroundColor: colors.primary }]}
           onPress={() => setFilter('pending')}
         >
-          <ThemedText style={[orderStyles.filterText, filter === 'pending' && { color: Colors.light.buttonText }]}>Pending</ThemedText>
+          <ThemedText style={[orderStyles.filterText, filter === 'pending' && { color: colors.buttonText }]}>Pending</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[orderStyles.filterButton, filter === 'completed' && { backgroundColor: Colors.light.primary }]}
+          style={[orderStyles.filterButton, filter === 'completed' && { backgroundColor: colors.primary }]}
           onPress={() => setFilter('completed')}
         >
-          <ThemedText style={[orderStyles.filterText, filter === 'completed' && { color: Colors.light.buttonText }]}>Completed</ThemedText>
+          <ThemedText style={[orderStyles.filterText, filter === 'completed' && { color: colors.buttonText }]}>Completed</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 

@@ -21,7 +21,13 @@ interface MenuSection {
 
 const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
   const [favorites, setFavorites] = useState<string[]>(['orders']); // Default favorite
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'Gestion': true,
+    'Administration': false,
+    'Others': false,
+  });
 
   const toggleFavorite = (itemName: string) => {
     setFavorites(prev =>
@@ -29,6 +35,13 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
         ? prev.filter(fav => fav !== itemName)
         : [...prev, itemName]
     );
+  };
+
+  const toggleSection = (sectionTitle: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle],
+    }));
   };
 
   const menuSections: MenuSection[] = [
@@ -69,12 +82,12 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
           onPress={() => props.navigation.navigate(item.name)}
         >
           <View style={styles.menuItemLeft}>
-            <IconSymbol name={item.icon} size={24} color={Colors[colorScheme ?? 'light'].tint} />
-            <Text style={[styles.menuItemText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <IconSymbol name={item.icon} size={24} color={colors.tint} />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>
               {item.label}
             </Text>
             {item.badge && item.badge > 0 && (
-              <View style={styles.badge}>
+              <View style={[styles.badge, { backgroundColor: colors.error }]}>
                 <Text style={styles.badgeText}>{item.badge}</Text>
               </View>
             )}
@@ -86,35 +99,49 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
             <IconSymbol
               name={isFavorite ? 'star.fill' : 'star'}
               size={16}
-              color={isFavorite ? '#FFD700' : Colors[colorScheme ?? 'light'].text}
+              color={isFavorite ? '#FFD700' : colors.text}
             />
           </TouchableOpacity>
         </TouchableOpacity>
-        {!isLastInSection && <View style={styles.separator} />}
+        {!isLastInSection && <View style={[styles.separator, { backgroundColor: colors.border }]} />}
       </View>
     );
   };
 
-  const renderSection = (section: MenuSection, sectionIndex: number) => (
-    <View key={section.title} style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-        {section.title}
-      </Text>
-      {section.items.map((item, itemIndex) => renderMenuItem(item, sectionIndex, itemIndex))}
-    </View>
-  );
+  const renderSection = (section: MenuSection, sectionIndex: number) => {
+    const isExpanded = expandedSections[section.title];
+
+    return (
+      <View key={section.title} style={styles.section}>
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => toggleSection(section.title)}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {section.title}
+          </Text>
+          <IconSymbol
+            name={isExpanded ? 'chevron.down' : 'chevron.right'}
+            size={16}
+            color={colors.muted}
+          />
+        </TouchableOpacity>
+        {isExpanded && section.items.map((item, itemIndex) => renderMenuItem(item, sectionIndex, itemIndex))}
+      </View>
+    );
+  };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.headerText, { color: Colors[colorScheme ?? 'light'].text }]}>
+    <DrawerContentScrollView {...props} contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerText, { color: colors.text }]}>
           Fast Food Delivery
         </Text>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => props.navigation.closeDrawer()}
         >
-          <IconSymbol name="xmark" size={20} color={Colors[colorScheme ?? 'light'].text} />
+          <IconSymbol name="xmark" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -122,13 +149,13 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
         {menuSections.map((section, index) => renderSection(section, index))}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
         <TouchableOpacity
           style={styles.collapseButton}
           onPress={() => props.navigation.closeDrawer()}
         >
-          <IconSymbol name="chevron.left" size={20} color={Colors[colorScheme ?? 'light'].text} />
-          <Text style={[styles.collapseText, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <IconSymbol name="chevron.left" size={20} color={colors.text} />
+          <Text style={[styles.collapseText, { color: colors.text }]}>
             Réduire le menu
           </Text>
         </TouchableOpacity>
@@ -140,7 +167,6 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   header: {
     flexDirection: 'row',
@@ -148,7 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   headerText: {
     fontSize: 18,
@@ -162,14 +187,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
-    marginBottom: 8,
-    paddingHorizontal: 8,
+    marginBottom: 0,
   },
   menuItem: {
     flexDirection: 'row',
@@ -178,10 +210,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 8,
+    marginLeft: 16,
   },
-  favoriteItem: {
-    backgroundColor: Colors.light.cardBackground,
-  },
+  favoriteItem: {},
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,7 +224,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   badge: {
-    backgroundColor: 'red',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -211,13 +241,11 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: Colors.light.border,
-    marginHorizontal: 8,
+    marginHorizontal: 24,
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
   },
   collapseButton: {
     flexDirection: 'row',

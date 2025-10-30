@@ -1,10 +1,8 @@
-import { Colors } from '@/constants/theme';
 import { StyleSheet } from 'react-native';
 
 export const orderStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   header: {
     padding: 20,
@@ -21,7 +19,6 @@ export const orderStyles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.light.primary,
   },
   filterText: {
     fontSize: 14,
@@ -48,12 +45,10 @@ export const orderStyles = StyleSheet.create({
   },
   orderDate: {
     fontSize: 14,
-    color: Colors.light.secondary,
     marginBottom: 4,
   },
   orderItems: {
     fontSize: 14,
-    color: Colors.light.secondary,
     marginBottom: 12,
   },
   viewDetailsButton: {
@@ -61,6 +56,5 @@ export const orderStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    backgroundColor: Colors.light.primary + '20',
   },
 });

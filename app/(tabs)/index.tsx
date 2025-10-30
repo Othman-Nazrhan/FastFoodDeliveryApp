@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -99,7 +99,7 @@ export default function HomeScreen() {
       onPress={() => handleCategoryPress(item.id)}
     >
       <Image source={{ uri: item.image }} style={indexStyles.categoryImage} />
-      <Ionicons name={item.icon as any} size={32} color={tintColor} style={indexStyles.categoryIcon} />
+      <IconSymbol name={item.icon} size={32} color={tintColor} style={indexStyles.categoryIcon} />
       <ThemedText type="subtitle" style={indexStyles.categoryName}>
         {item.name}
       </ThemedText>
