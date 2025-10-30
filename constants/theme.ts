@@ -25,6 +25,7 @@ export const Colors = {
     gradientStart: '#FF4B3E', // Red for CTA gradients
     gradientEnd: '#FF5722', // Orange for CTA gradients
     star: '#FFC107',
+    border: '#E0E0E0', // Border color
   },
   dark: {
     primary: '#FF6B5E', // Lighter red for dark mode
@@ -45,6 +46,7 @@ export const Colors = {
     gradientStart: '#FF6B5E',
     gradientEnd: '#FF7043',
     star: '#FFD54F',
+    border: '#333333', // Dark border color
   },
 };
 

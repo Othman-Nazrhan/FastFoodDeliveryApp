@@ -1,34 +1,5 @@
+import { CartItem, FoodItem, OrderHistory } from '@/types';
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
-
-export interface FoodItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description: string;
-  rating: number;
-  isVegetarian?: boolean;
-}
-
-export interface CartItem extends FoodItem {
-  quantity: number;
-}
-
-export interface OrderHistory {
-  id: string;
-  items: CartItem[];
-  total: number;
-  date: string;
-  deliveryTime: number;
-}
-
-export interface UserSettings {
-  notifications: boolean;
-  vegetarianOnly: boolean;
-  name: string;
-  address: string;
-}
 
 interface CartState {
   items: CartItem[];
@@ -36,7 +7,6 @@ interface CartState {
   favorites: string[];
   ratings: { [key: string]: number };
   orderHistory: OrderHistory[];
-  settings: UserSettings;
 }
 
 type CartAction =
@@ -47,9 +17,7 @@ type CartAction =
   | { type: 'CLEAR_CART' }
   | { type: 'SET_CATEGORY'; category: string }
   | { type: 'TOGGLE_FAVORITE'; id: string }
-  | { type: 'RATE_ITEM'; id: string; rating: number }
-  | { type: 'ADD_ORDER'; order: OrderHistory }
-  | { type: 'UPDATE_SETTINGS'; settings: Partial<UserSettings> };
+  | { type: 'RATE_ITEM'; id: string; rating: number };
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -110,16 +78,6 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         ...state,
         ratings: { ...state.ratings, [action.id]: action.rating },
       };
-    case 'ADD_ORDER':
-      return {
-        ...state,
-        orderHistory: [action.order, ...state.orderHistory],
-      };
-    case 'UPDATE_SETTINGS':
-      return {
-        ...state,
-        settings: { ...state.settings, ...action.settings },
-      };
     default:
       return state;
   }
@@ -136,26 +94,16 @@ const CartContext = createContext<{
   setSelectedCategory: (category: string) => void;
   toggleFavorite: (id: string) => void;
   rateItem: (id: string, rating: number) => void;
-  addOrder: (order: OrderHistory) => void;
-  updateSettings: (settings: Partial<UserSettings>) => void;
   getEstimatedDeliveryTime: () => number;
 } | null>(null);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const defaultSettings: UserSettings = {
-    notifications: true,
-    vegetarianOnly: false,
-    name: '',
-    address: '',
-  };
-
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     selectedCategory: null,
     favorites: [],
     ratings: {},
     orderHistory: [],
-    settings: defaultSettings,
   });
 
   const addToCart = (item: FoodItem) => {
@@ -194,14 +142,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'RATE_ITEM', id, rating });
   };
 
-  const addOrder = (order: OrderHistory) => {
-    dispatch({ type: 'ADD_ORDER', order });
-  };
-
-  const updateSettings = (settings: Partial<UserSettings>) => {
-    dispatch({ type: 'UPDATE_SETTINGS', settings });
-  };
-
   const getEstimatedDeliveryTime = () => {
     const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
     // Base time 15 min + 2 min per item
@@ -220,8 +160,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSelectedCategory,
       toggleFavorite,
       rateItem,
-      addOrder,
-      updateSettings,
       getEstimatedDeliveryTime
     }}>
       {children}

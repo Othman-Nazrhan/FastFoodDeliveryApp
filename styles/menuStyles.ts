@@ -6,6 +6,9 @@ export const menuStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  gradientBackground: {
+    flex: 1,
+  },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -100,5 +103,13 @@ export const menuStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
   },
 });

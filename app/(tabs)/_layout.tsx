@@ -1,85 +1,85 @@
-import { Tabs } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import CustomDrawer from '@/components/CustomDrawer';
 import { Colors } from '@/constants/theme';
-import { useCart } from '@/contexts/CartContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export default function TabLayout() {
+export default function DrawerLayout() {
   const colorScheme = useColorScheme();
-  const { state } = useCart();
-  const totalItems = state.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
 
   return (
-    <Tabs
+    <Drawer
+      drawerContent={(props) => <CustomDrawer {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        drawerActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: true,
-        tabBarButton: HapticTab,
       }}>
-      <Tabs.Screen
+      <Drawer.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          drawerLabel: 'Home',
         }}
       />
-      <Tabs.Screen
+      <Drawer.Screen
         name="menu"
         options={{
           title: 'Menu',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
+          drawerLabel: 'Menu',
         }}
       />
-
-      <Tabs.Screen
-        name="cart"
-        options={{
-          title: 'Cart',
-          tabBarIcon: ({ color }) => (
-            <View>
-              <IconSymbol size={28} name="bag.fill" color={color} />
-              {totalItems > 0 && (
-                <View style={styles.badge}>
-                  <ThemedText style={styles.badgeText}>{totalItems}</ThemedText>
-                </View>
-              )}
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
+      <Drawer.Screen
         name="stats"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+          drawerLabel: 'Dashboard',
         }}
       />
-    </Tabs>
+      <Drawer.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          drawerLabel: 'Orders',
+        }}
+      />
+      <Drawer.Screen
+        name="analytics"
+        options={{
+          title: 'Analytics',
+          drawerLabel: 'Analytics',
+        }}
+      />
+      <Drawer.Screen
+        name="users"
+        options={{
+          title: 'Users',
+          drawerLabel: 'Users',
+        }}
+      />
+      <Drawer.Screen
+        name="payments"
+        options={{
+          title: 'Payments',
+          drawerLabel: 'Payments',
+        }}
+      />
+      <Drawer.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          drawerLabel: 'Settings',
+        }}
+      />
+      <Drawer.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          drawerLabel: 'Profile',
+        }}
+      />
+    </Drawer>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    position: 'absolute',
-    right: -6,
-    top: -3,
-    backgroundColor: 'red',
-    borderRadius: 6,
-    width: 12,
-    height: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 8,
-    fontWeight: 'bold',
-  },
-});
 
 

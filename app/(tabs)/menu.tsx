@@ -7,8 +7,10 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { menuStyles } from '@/styles/menuStyles';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, ScrollView, TouchableOpacity } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function MenuScreen() {
   const { state, addToCart, toggleFavorite } = useCart();
@@ -22,8 +24,15 @@ export default function MenuScreen() {
   const background = useThemeColor({}, 'background');
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    description: '',
+    price: '',
+    image: '',
+  });
 
-  const allItems = selectedCategory ? foodItems[selectedCategory] || [] : [];
+  const allItems = useMemo(() => selectedCategory ? foodItems[selectedCategory] || [] : [], [selectedCategory]);
   const filteredItems = useMemo(() => {
     if (!searchQuery) return allItems;
     return allItems.filter((item: FoodItem) =>
@@ -31,6 +40,25 @@ export default function MenuScreen() {
       item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [allItems, searchQuery]);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your photos');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setNewItem({ ...newItem, image: result.assets[0].uri });
+    }
+  };
 
   if (!selectedCategory) {
     return (
@@ -51,7 +79,6 @@ export default function MenuScreen() {
 
   const renderItem = ({ item }: { item: FoodItem }) => {
     const isFavorite = state.favorites.includes(item.id);
-    const userRating = state.ratings[item.id] || 0;
 
     return (
       <ThemedView style={[menuStyles.itemCard, { backgroundColor: cardBackground, shadowColor }]}>
@@ -67,9 +94,12 @@ export default function MenuScreen() {
           />
         </TouchableOpacity>
         <Image source={{ uri: item.image }} style={menuStyles.itemImage} />
-        <ThemedText type="subtitle" style={menuStyles.itemName}>
-          {item.name}
-        </ThemedText>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="restaurant-outline" size={20} color={primary} style={{ marginRight: 8 }} />
+          <ThemedText type="subtitle" style={menuStyles.itemName}>
+            {item.name}
+          </ThemedText>
+        </View>
         <ThemedView style={menuStyles.ratingContainer}>
           {[...Array(5)].map((_, index) => (
             <Ionicons
@@ -83,18 +113,25 @@ export default function MenuScreen() {
             ({item.rating})
           </ThemedText>
         </ThemedView>
-        <ThemedText type="default" style={[menuStyles.itemDescription, { color: muted }]}>
-          {item.description}
-        </ThemedText>
-        <ThemedText type="defaultSemiBold" style={[menuStyles.itemPrice, { color: primary }]}>
-          ${item.price.toFixed(2)}
-        </ThemedText>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="information-circle-outline" size={16} color={muted} style={{ marginRight: 4 }} />
+          <ThemedText type="default" style={[menuStyles.itemDescription, { color: muted }]}>
+            {item.description}
+          </ThemedText>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="pricetag-outline" size={16} color={primary} style={{ marginRight: 4 }} />
+          <ThemedText type="defaultSemiBold" style={[menuStyles.itemPrice, { color: primary }]}>
+            ${item.price.toFixed(2)}
+          </ThemedText>
+        </View>
         <TouchableOpacity
           style={[menuStyles.addButton, { backgroundColor: primary }]}
           onPress={() => handleAddToCart(item)}
           accessibilityLabel={`Add ${item.name} to cart`}
           accessibilityRole="button"
         >
+          <Ionicons name="add-circle-outline" size={20} color={buttonText} style={{ marginRight: 8 }} />
           <ThemedText type="defaultSemiBold" style={[menuStyles.addButtonText, { color: buttonText }]}>
             Add to Cart
           </ThemedText>
@@ -103,21 +140,119 @@ export default function MenuScreen() {
     );
   };
 
+  const handleAddNewItem = () => {
+    if (!newItem.name || !newItem.description || !newItem.price || !newItem.image) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // In a real app, this would be saved to a backend
+    // For now, we'll just show a success message
+    Alert.alert('Success', 'Item added to menu!');
+    setShowAddModal(false);
+    setNewItem({ name: '', description: '', price: '', image: '' });
+  };
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: background }}>
-      <ThemedView style={menuStyles.titleContainer}>
-        <ThemedText type="title">{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Menu</ThemedText>
-      </ThemedView>
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
-      <FlatList
-        data={filteredItems}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={menuStyles.itemsList}
-        scrollEnabled={false}
-        showsVerticalScrollIndicator={false}
-      />
-    </ScrollView>
+    <LinearGradient
+      colors={['#2c3e50', '#34495e']} // Dark gradient background
+      style={menuStyles.gradientBackground}
+    >
+      <ScrollView style={{ flex: 1 }}>
+        <ThemedView style={menuStyles.titleContainer}>
+          <ThemedText type="title">{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Menu</ThemedText>
+          <TouchableOpacity
+            style={[menuStyles.addButton, { backgroundColor: primary, marginLeft: 10, paddingHorizontal: 16, paddingVertical: 8, flexDirection: 'row', alignItems: 'center' }]}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Ionicons name="add-circle-outline" size={20} color={buttonText} style={{ marginRight: 8 }} />
+            <ThemedText type="defaultSemiBold" style={[menuStyles.addButtonText, { color: buttonText }]}>
+              Add Item
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+        <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+        <FlatList
+          data={filteredItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={menuStyles.itemsList}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* Add Item Modal */}
+        <Modal visible={showAddModal} animationType="slide" transparent>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <ThemedView style={[menuStyles.itemCard, { backgroundColor: cardBackground, width: '90%', maxHeight: '80%' }]}>
+              <ThemedText type="title" style={{ marginBottom: 20 }}>Add New Item</ThemedText>
+
+              <TextInput
+                style={[menuStyles.input, { backgroundColor: background, color: muted }]}
+                placeholder="Item Name"
+                placeholderTextColor={muted}
+                value={newItem.name}
+                onChangeText={(text) => setNewItem({ ...newItem, name: text })}
+              />
+
+              <TextInput
+                style={[menuStyles.input, { backgroundColor: background, color: muted }]}
+                placeholder="Description"
+                placeholderTextColor={muted}
+                value={newItem.description}
+                onChangeText={(text) => setNewItem({ ...newItem, description: text })}
+                multiline
+              />
+
+              <TextInput
+                style={[menuStyles.input, { backgroundColor: background, color: muted }]}
+                placeholder="Price"
+                placeholderTextColor={muted}
+                value={newItem.price}
+                onChangeText={(text) => setNewItem({ ...newItem, price: text })}
+                keyboardType="numeric"
+              />
+
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TextInput
+                  style={[menuStyles.input, { backgroundColor: background, color: muted, flex: 1 }]}
+                  placeholder="Image URL"
+                  placeholderTextColor={muted}
+                  value={newItem.image}
+                  onChangeText={(text) => setNewItem({ ...newItem, image: text })}
+                />
+                <TouchableOpacity
+                  style={[menuStyles.addButton, { backgroundColor: primary, marginLeft: 10, paddingHorizontal: 12, paddingVertical: 12 }]}
+                  onPress={pickImage}
+                >
+                  <Ionicons name="image" size={20} color={buttonText} />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[menuStyles.addButton, { backgroundColor: primary, marginTop: 20 }]}
+                onPress={handleAddNewItem}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={buttonText} style={{ marginRight: 8 }} />
+                <ThemedText type="defaultSemiBold" style={[menuStyles.addButtonText, { color: buttonText }]}>
+                  Add Item
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[menuStyles.addButton, { backgroundColor: muted, marginTop: 10 }]}
+                onPress={() => setShowAddModal(false)}
+              >
+                <Ionicons name="close-circle-outline" size={20} color={buttonText} style={{ marginRight: 8 }} />
+                <ThemedText type="defaultSemiBold" style={[menuStyles.addButtonText, { color: buttonText }]}>
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </View>
+        </Modal>
+      </ScrollView>
+    </LinearGradient>
   );
 }

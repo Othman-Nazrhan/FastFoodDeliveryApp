@@ -1,12 +1,11 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolViewProps, SymbolWeight } from 'expo-symbols';
+import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+type IconMapping = Record<string, ComponentProps<typeof MaterialIcons>['name']>;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -21,6 +20,15 @@ const MAPPING = {
   'list.bullet': 'list',
   'bag.fill': 'shopping-bag',
   'chart.bar.fill': 'bar-chart',
+  'person.2.fill': 'people',
+  'chart.pie.fill': 'pie-chart',
+  'creditcard.fill': 'credit-card',
+  'gear': 'settings',
+  'person.circle.fill': 'account-circle',
+  'xmark': 'close',
+  'chevron.left': 'chevron-left',
+  'star.fill': 'star',
+  'star': 'star-border',
 } as IconMapping;
 
 export function IconSymbol({
@@ -29,7 +37,7 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name: string;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
