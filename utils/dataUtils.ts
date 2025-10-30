@@ -1,9 +1,10 @@
-import { foodItems } from '@/data/foodItems';
-import { mockOrderHistory as orders } from '@/data/orders';
+import { fetchFoodItems } from '@/data/foodItems';
+import { fetchOrders } from '@/data/orders';
 import { CategoryData, OrderHistory, SalesData, TopProduct } from '@/types';
 
-export const calculateSalesData = (orderHistory: OrderHistory[] = orders): SalesData[] => {
-  const salesData = (orderHistory || []).reduce((acc, order) => {
+export const calculateSalesData = async (orderHistory?: OrderHistory[]): Promise<SalesData[]> => {
+  const orders = orderHistory || await fetchOrders();
+  const salesData = (orders || []).reduce((acc: { [key: string]: number }, order: OrderHistory) => {
     const date = new Date(order.date);
     const key = date.toISOString().split('T')[0];
     acc[key] = (acc[key] || 0) + order.total;
@@ -12,15 +13,18 @@ export const calculateSalesData = (orderHistory: OrderHistory[] = orders): Sales
 
   return Object.entries(salesData).map(([date, total]) => ({
     date,
-    total,
+    total: total as number,
   }));
 };
 
-export const calculateCategoryData = (orderHistory: OrderHistory[] = orders): CategoryData[] => {
+export const calculateCategoryData = async (orderHistory?: OrderHistory[]): Promise<CategoryData[]> => {
+  const orders = orderHistory || await fetchOrders();
+  const foodItems = await fetchFoodItems();
+
   return Object.keys(foodItems).map(category => {
     const itemsInCategory = foodItems[category];
-    const totalSold = itemsInCategory.reduce((sum, item) => {
-      const sold = (orderHistory || []).reduce((itemSum, order) => {
+    const totalSold = itemsInCategory.reduce((sum: number, item) => {
+      const sold = (orders || []).reduce((itemSum: number, order: OrderHistory) => {
         const orderItem = order.items.find(oi => oi.id === item.id);
         return itemSum + (orderItem ? orderItem.quantity : 0);
       }, 0);
@@ -36,9 +40,12 @@ export const calculateCategoryData = (orderHistory: OrderHistory[] = orders): Ca
   });
 };
 
-export const calculateTopProducts = (orderHistory: OrderHistory[] = orders, limit: number = 5): TopProduct[] => {
+export const calculateTopProducts = async (orderHistory?: OrderHistory[], limit: number = 5): Promise<TopProduct[]> => {
+  const orders = orderHistory || await fetchOrders();
+  const foodItems = await fetchFoodItems();
+
   return Object.values(foodItems).flat().map(item => {
-    const totalSold = (orderHistory || []).reduce((sum, order) => {
+    const totalSold = (orders || []).reduce((sum: number, order: OrderHistory) => {
       const orderItem = order.items.find(oi => oi.id === item.id);
       return sum + (orderItem ? orderItem.quantity : 0);
     }, 0);
@@ -46,12 +53,14 @@ export const calculateTopProducts = (orderHistory: OrderHistory[] = orders, limi
   }).sort((a, b) => b.totalSold - a.totalSold).slice(0, limit);
 };
 
-export const calculateTotalRevenue = (orderHistory: OrderHistory[] = orders): number => {
-  return (orderHistory || []).reduce((sum, order) => sum + order.total, 0);
+export const calculateTotalRevenue = async (orderHistory?: OrderHistory[]): Promise<number> => {
+  const orders = orderHistory || await fetchOrders();
+  return (orders || []).reduce((sum: number, order: OrderHistory) => sum + order.total, 0);
 };
 
-export const getRecentOrders = (orderHistory: OrderHistory[] = orders, limit: number = 3): OrderHistory[] => {
-  return orderHistory.slice(-limit);
+export const getRecentOrders = async (orderHistory?: OrderHistory[], limit: number = 3): Promise<OrderHistory[]> => {
+  const orders = orderHistory || await fetchOrders();
+  return orders.slice(-limit);
 };
 
 export const filterOrdersByDateRange = (orderHistory: OrderHistory[], filter: 'all' | 'week' | 'month'): OrderHistory[] => {

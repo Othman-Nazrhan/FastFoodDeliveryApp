@@ -3,49 +3,113 @@ import { supabase } from '@/utils/supabase';
 
 // Function to fetch food items from Supabase
 export const fetchFoodItems = async (): Promise<{ [key: string]: FoodItem[] }> => {
-  try {
-    // Check if supabase client is available
-    if (!supabase) {
-      console.warn('Supabase client not available, using static data');
-      return getStaticFoodItems();
+  const { data, error } = await supabase
+    .from('food_items')
+    .select('*');
+
+  if (error) {
+    throw new Error(`Error fetching food items: ${error.message}`);
+  }
+
+  // Transform data to match the expected structure
+  const foodItems: { [key: string]: FoodItem[] } = {};
+
+  data?.forEach((item) => {
+    const foodItem: FoodItem = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      category: item.category,
+      description: item.description,
+      rating: item.rating,
+      isVegetarian: item.is_vegetarian || undefined,
+    };
+
+    if (!foodItems[item.category]) {
+      foodItems[item.category] = [];
     }
+    foodItems[item.category].push(foodItem);
+  });
 
-    const { data, error } = await supabase
-      .from('food_items')
-      .select('*');
+  return foodItems;
+};
 
-    if (error) {
-      console.error('Error fetching food items:', error);
-      // Fallback to static data if API fails
-      return getStaticFoodItems();
-    }
+// Function to create a new food item
+export const createFoodItem = async (item: Omit<FoodItem, 'id'>): Promise<FoodItem> => {
+  const { data, error } = await supabase
+    .from('food_items')
+    .insert({
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      category: item.category,
+      description: item.description,
+      rating: item.rating,
+      is_vegetarian: item.isVegetarian,
+    })
+    .select()
+    .single();
 
-    // Transform data to match the expected structure
-    const foodItems: { [key: string]: FoodItem[] } = {};
+  if (error) {
+    throw new Error(`Error creating food item: ${error.message}`);
+  }
 
-    data?.forEach((item) => {
-      const foodItem: FoodItem = {
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-        category: item.category,
-        description: item.description,
-        rating: item.rating,
-        isVegetarian: item.is_vegetarian || undefined,
-      };
+  return {
+    id: data.id,
+    name: data.name,
+    price: data.price,
+    image: data.image,
+    category: data.category,
+    description: data.description,
+    rating: data.rating,
+    isVegetarian: data.is_vegetarian || undefined,
+  };
+};
 
-      if (!foodItems[item.category]) {
-        foodItems[item.category] = [];
-      }
-      foodItems[item.category].push(foodItem);
-    });
+// Function to update a food item
+export const updateFoodItem = async (id: string, updates: Partial<FoodItem>): Promise<FoodItem> => {
+  const updateData: any = {};
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.price !== undefined) updateData.price = updates.price;
+  if (updates.image !== undefined) updateData.image = updates.image;
+  if (updates.category !== undefined) updateData.category = updates.category;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.rating !== undefined) updateData.rating = updates.rating;
+  if (updates.isVegetarian !== undefined) updateData.is_vegetarian = updates.isVegetarian;
 
-    return foodItems;
-  } catch (error) {
-    console.error('Error fetching food items:', error);
-    // Fallback to static data
-    return getStaticFoodItems();
+  const { data, error } = await supabase
+    .from('food_items')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating food item: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    price: data.price,
+    image: data.image,
+    category: data.category,
+    description: data.description,
+    rating: data.rating,
+    isVegetarian: data.is_vegetarian || undefined,
+  };
+};
+
+// Function to delete a food item
+export const deleteFoodItem = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('food_items')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(`Error deleting food item: ${error.message}`);
   }
 };
 

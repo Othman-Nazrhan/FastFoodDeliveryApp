@@ -6,7 +6,7 @@ import { fetchFoodItems } from '@/data/foodItems';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { menuStyles } from '@/styles/menuStyles';
 import { FoodItem } from '@/types';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -161,17 +161,37 @@ export default function MenuScreen() {
     );
   };
 
-  const handleAddNewItem = () => {
+  const handleAddNewItem = async () => {
     if (!newItem.name || !newItem.description || !newItem.price || !newItem.image) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    // In a real app, this would be saved to a backend
-    // For now, we'll just show a success message
-    Alert.alert('Success', 'Item added to menu!');
-    setShowAddModal(false);
-    setNewItem({ name: '', description: '', price: '', image: '' });
+    try {
+      const { createFoodItem } = await import('@/data/foodItems');
+      const foodItem = {
+        name: newItem.name,
+        description: newItem.description,
+        price: parseFloat(newItem.price),
+        image: newItem.image,
+        category: selectedCategory,
+        rating: 5.0, // Default rating for new items
+        isVegetarian: false, // Default to false
+      };
+
+      await createFoodItem(foodItem);
+
+      // Refresh food items
+      const fetchedItems = await fetchFoodItems();
+      setFoodItems(fetchedItems);
+
+      Alert.alert('Success', 'Item added to menu!');
+      setShowAddModal(false);
+      setNewItem({ name: '', description: '', price: '', image: '' });
+    } catch (error) {
+      console.error('Error adding new item:', error);
+      Alert.alert('Error', 'Failed to add item to menu. Please try again.');
+    }
   };
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);

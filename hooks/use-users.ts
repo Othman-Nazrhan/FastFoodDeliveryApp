@@ -1,4 +1,4 @@
-import { fetchUsers, mockUsers } from '@/data/users';
+import { createUser, fetchUsers, updateUser } from '@/data/users';
 import { User } from '@/types';
 import { useEffect, useState } from 'react';
 
@@ -7,24 +7,52 @@ export const useUsers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setLoading(true);
-        const fetchedUsers = await fetchUsers();
-        setUsers(fetchedUsers);
-      } catch (err) {
-        setError('Failed to load users');
-        console.error('Error loading users:', err);
-        // Fallback to static data
-        setUsers(mockUsers);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedUsers = await fetchUsers();
+      setUsers(fetchedUsers);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load users';
+      setError(errorMessage);
+      console.error('Error loading users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadUsers();
   }, []);
+
+  const addUser = async (userData: Omit<User, 'id'>) => {
+    try {
+      setError(null);
+      const newUser = await createUser(userData);
+      setUsers(prev => [...prev, newUser]);
+      return newUser;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create user';
+      setError(errorMessage);
+      console.error('Error creating user:', err);
+      throw err;
+    }
+  };
+
+  const modifyUser = async (id: string, updates: Partial<User>) => {
+    try {
+      setError(null);
+      const updatedUser = await updateUser(id, updates);
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+      return updatedUser;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user';
+      setError(errorMessage);
+      console.error('Error updating user:', err);
+      throw err;
+    }
+  };
 
   const getUserById = (id: string): User | undefined => {
     return users.find(user => user.id === id);
@@ -47,6 +75,8 @@ export const useUsers = () => {
     users,
     loading,
     error,
+    addUser,
+    modifyUser,
     getUserById,
     getTotalUsers,
     getTotalSpentByUser,

@@ -46,6 +46,9 @@ export interface UserSettings {
   vegetarianOnly: boolean;
   name: string;
   address: string;
+  phone?: string;
+  darkMode?: boolean;
+  locationServices?: boolean;
 }
 
 export interface Category {

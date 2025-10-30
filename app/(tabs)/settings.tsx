@@ -2,18 +2,28 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { useUser } from '@/contexts/UserContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { settingsStyles } from '@/styles/settingsStyles';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, Switch, TouchableOpacity } from 'react-native';
 
 export default function SettingsScreen() {
   const cardBackground = useThemeColor({}, 'cardBackground');
   const shadowColor = useThemeColor({}, 'shadow');
 
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [locationServices, setLocationServices] = useState(true);
+  const { state: userState, updateSettings } = useUser();
+
+  const [notifications, setNotifications] = useState(userState.settings.notifications ?? true);
+  const [darkMode, setDarkMode] = useState(userState.settings.darkMode ?? false);
+  const [locationServices, setLocationServices] = useState(userState.settings.locationServices ?? true);
+
+  // Update local state when user settings change
+  useEffect(() => {
+    setNotifications(userState.settings.notifications ?? true);
+    setDarkMode(userState.settings.darkMode ?? false);
+    setLocationServices(userState.settings.locationServices ?? true);
+  }, [userState.settings]);
 
   const settingsSections = [
     {
@@ -42,6 +52,18 @@ export default function SettingsScreen() {
     },
   ];
 
+  const handleToggleChange = async (setting: string, value: boolean) => {
+    try {
+      await updateSettings({ [setting]: value });
+    } catch (error) {
+      console.error(`Error updating ${setting}:`, error);
+      // Revert the toggle if update failed
+      if (setting === 'notifications') setNotifications(!value);
+      else if (setting === 'darkMode') setDarkMode(!value);
+      else if (setting === 'locationServices') setLocationServices(!value);
+    }
+  };
+
   const renderSettingItem = (item: any) => (
     <TouchableOpacity key={item.action} style={[settingsStyles.settingItem, { backgroundColor: cardBackground, shadowColor }]}>
       <ThemedView style={settingsStyles.settingLeft}>
@@ -51,7 +73,10 @@ export default function SettingsScreen() {
       {item.toggle !== undefined ? (
         <Switch
           value={item.toggle}
-          onValueChange={item.setToggle}
+          onValueChange={(value) => {
+            item.setToggle(value);
+            handleToggleChange(item.action, value);
+          }}
           trackColor={{ false: Colors.light.secondary, true: Colors.light.primary }}
           thumbColor={Colors.light.background}
         />

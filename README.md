@@ -64,8 +64,69 @@ A comprehensive, cross-platform mobile application for fast food delivery and ma
    ```
 
 3. Set up Supabase:
-   - Create a Supabase project
-   - Update `utils/supabase.ts` with your project URL and anon key
+   - Create a Supabase project at [supabase.com](https://supabase.com)
+   - Create the following tables in your Supabase database:
+     ```sql
+     -- Food Items Table
+     CREATE TABLE food_items (
+       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+       name TEXT NOT NULL,
+       price DECIMAL(10,2) NOT NULL,
+       image TEXT NOT NULL,
+       category TEXT NOT NULL,
+       description TEXT NOT NULL,
+       rating DECIMAL(3,2) NOT NULL DEFAULT 4.0,
+       is_vegetarian BOOLEAN,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     );
+
+     -- Users Table
+     CREATE TABLE users (
+       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+       name TEXT NOT NULL,
+       email TEXT NOT NULL UNIQUE,
+       avatar TEXT,
+       join_date DATE NOT NULL,
+       total_orders INTEGER DEFAULT 0,
+       total_spent DECIMAL(10,2) DEFAULT 0,
+       settings JSONB DEFAULT '{}',
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     );
+
+     -- Orders Table
+     CREATE TABLE orders (
+       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+       user_id UUID REFERENCES users(id),
+       items JSONB NOT NULL,
+       total DECIMAL(10,2) NOT NULL,
+       date DATE NOT NULL,
+       delivery_time INTEGER NOT NULL,
+       status TEXT DEFAULT 'pending',
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     );
+
+     -- Payments Table
+     CREATE TABLE payments (
+       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+       user_id UUID REFERENCES users(id),
+       amount DECIMAL(10,2) NOT NULL,
+       method TEXT NOT NULL,
+       status TEXT NOT NULL,
+       date DATE NOT NULL,
+       order_id UUID REFERENCES orders(id),
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     );
+     ```
+   - Get your project URL and anon key from the Supabase dashboard
+   - Create a `.env` file in the root directory:
+     ```
+     EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+     EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
 
 4. Start the development server:
    ```bash

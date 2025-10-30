@@ -3,40 +3,88 @@ import { supabase } from '@/utils/supabase';
 
 // Function to fetch users from Supabase
 export const fetchUsers = async (): Promise<User[]> => {
-  try {
-    // Check if supabase client is available
-    if (!supabase) {
-      console.warn('Supabase client not available, using static data');
-      return getStaticUsers();
-    }
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*');
+  if (error) {
+    throw new Error(`Error fetching users: ${error.message}`);
+  }
 
-    if (error) {
-      console.error('Error fetching users:', error);
-      // Fallback to static data if API fails
-      return getStaticUsers();
-    }
+  // Transform data to match the expected structure
+  const users: User[] = data?.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || undefined,
+    joinDate: user.join_date,
+    totalOrders: user.total_orders,
+    totalSpent: user.total_spent,
+  })) || [];
 
-    // Transform data to match the expected structure
-    const users: User[] = data?.map((user) => ({
-      id: user.id,
+  return users;
+};
+
+// Function to create a new user
+export const createUser = async (user: Omit<User, 'id'>): Promise<User> => {
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
       name: user.name,
       email: user.email,
-      avatar: user.avatar || undefined,
-      joinDate: user.join_date,
-      totalOrders: user.total_orders,
-      totalSpent: user.total_spent,
-    })) || [];
+      avatar: user.avatar,
+      join_date: user.joinDate,
+      total_orders: user.totalOrders,
+      total_spent: user.totalSpent,
+    })
+    .select()
+    .single();
 
-    return users;
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    // Fallback to static data
-    return getStaticUsers();
+  if (error) {
+    throw new Error(`Error creating user: ${error.message}`);
   }
+
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    avatar: data.avatar || undefined,
+    joinDate: data.join_date,
+    totalOrders: data.total_orders,
+    totalSpent: data.total_spent,
+  };
+};
+
+// Function to update a user
+export const updateUser = async (id: string, updates: Partial<User>): Promise<User> => {
+  const updateData: any = {};
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.email !== undefined) updateData.email = updates.email;
+  if (updates.avatar !== undefined) updateData.avatar = updates.avatar;
+  if (updates.joinDate !== undefined) updateData.join_date = updates.joinDate;
+  if (updates.totalOrders !== undefined) updateData.total_orders = updates.totalOrders;
+  if (updates.totalSpent !== undefined) updateData.total_spent = updates.totalSpent;
+
+  const { data, error } = await supabase
+    .from('users')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating user: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    avatar: data.avatar || undefined,
+    joinDate: data.join_date,
+    totalOrders: data.total_orders,
+    totalSpent: data.total_spent,
+  };
 };
 
 // Static fallback data (same as before)

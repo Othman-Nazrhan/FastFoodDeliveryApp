@@ -9,23 +9,42 @@ import {
   getPendingOrdersCount,
   getRecentOrders
 } from '@/utils/dataUtils';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useOrders } from './use-orders';
 
 export const useStatsData = (filter: 'all' | 'week' | 'month' = 'all') => {
   const { orders: orderHistory } = useOrders();
+  const [salesData, setSalesData] = useState<SalesData[]>([]);
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [recentOrders, setRecentOrders] = useState<OrderHistory[]>([]);
 
   const filteredOrderHistory = useMemo(() => filterOrdersByDateRange(orderHistory, filter), [orderHistory, filter]);
 
-  const salesData: SalesData[] = useMemo(() => calculateSalesData(filteredOrderHistory), [filteredOrderHistory]);
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [sales, categories, topProds, revenue, recent] = await Promise.all([
+          calculateSalesData(filteredOrderHistory),
+          calculateCategoryData(filteredOrderHistory),
+          calculateTopProducts(filteredOrderHistory),
+          calculateTotalRevenue(filteredOrderHistory),
+          getRecentOrders(filteredOrderHistory)
+        ]);
 
-  const categoryData: CategoryData[] = useMemo(() => calculateCategoryData(filteredOrderHistory), [filteredOrderHistory]);
+        setSalesData(sales);
+        setCategoryData(categories);
+        setTopProducts(topProds);
+        setTotalRevenue(revenue);
+        setRecentOrders(recent);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    };
 
-  const topProducts: TopProduct[] = useMemo(() => calculateTopProducts(filteredOrderHistory), [filteredOrderHistory]);
-
-  const totalRevenue: number = useMemo(() => calculateTotalRevenue(filteredOrderHistory), [filteredOrderHistory]);
-
-  const recentOrders: OrderHistory[] = useMemo(() => getRecentOrders(filteredOrderHistory), [filteredOrderHistory]);
+    loadStats();
+  }, [filteredOrderHistory]);
 
   const favoriteBurger: string = useMemo(() => getFavoriteBurger(topProducts), [topProducts]);
 

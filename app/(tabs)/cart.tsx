@@ -1,14 +1,14 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CartItem, useCart } from '@/contexts/CartContext';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useCart } from '@/contexts/CartContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { cartStyles } from '@/styles/cartStyles';
+import { CartItem } from '@/types';
 import { useState } from 'react';
 import { Alert, FlatList, Image, ScrollView, TouchableOpacity } from 'react-native';
 
 export default function CartScreen() {
-  const { state, removeFromCart, increaseQuantity, decreaseQuantity, clearCart, getTotal } = useCart();
+  const { state, removeFromCart, increaseQuantity, decreaseQuantity, getTotal, placeOrder } = useCart();
   const { items } = state;
   const cardBackground = useThemeColor({}, 'cardBackground');
   const shadowColor = useThemeColor({}, 'shadow');
@@ -17,7 +17,6 @@ export default function CartScreen() {
   const success = useThemeColor({}, 'success');
   const buttonText = useThemeColor({}, 'buttonText');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const { scheduleNotification } = useNotifications();
 
   const handleRemoveFromCart = (id: string) => {
     removeFromCart(id);
@@ -28,18 +27,47 @@ export default function CartScreen() {
       Alert.alert('Cart is empty', 'Add some items to your cart first!');
       return;
     }
-    setIsPlacingOrder(true);
-    // Simulate order processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    Alert.alert('Thank You!', 'Your order has been placed successfully! We appreciate your business.');
-    clearCart();
-    // Send push notification for order confirmation
-    await scheduleNotification(
-      'Order Confirmed! 🎉',
-      `Your order for ${items.length} item(s) totaling $${getTotal().toFixed(2)} has been placed successfully.`,
-      { type: 'order_confirmation', orderId: Date.now().toString() }
+
+    // Show payment method selection
+    Alert.alert(
+      'Select Payment Method',
+      'Choose your preferred payment method',
+      [
+        {
+          text: 'Card',
+          onPress: () => processOrder('card'),
+        },
+        {
+          text: 'PayPal',
+          onPress: () => processOrder('paypal'),
+        },
+        {
+          text: 'Apple Pay',
+          onPress: () => processOrder('apple_pay'),
+        },
+        {
+          text: 'Google Pay',
+          onPress: () => processOrder('google_pay'),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
     );
-    setIsPlacingOrder(false);
+  };
+
+  const processOrder = async (paymentMethod: 'card' | 'paypal' | 'apple_pay' | 'google_pay') => {
+    setIsPlacingOrder(true);
+    try {
+      await placeOrder(paymentMethod);
+      Alert.alert('Thank You!', 'Your order has been placed successfully! We appreciate your business.');
+    } catch (error) {
+      Alert.alert('Order Failed', 'There was an error placing your order. Please try again.');
+      console.error('Order placement error:', error);
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   const renderItem = ({ item }: { item: CartItem }) => (

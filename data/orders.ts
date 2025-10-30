@@ -3,38 +3,78 @@ import { supabase } from '@/utils/supabase';
 
 // Function to fetch orders from Supabase
 export const fetchOrders = async (): Promise<OrderHistory[]> => {
-  try {
-    // Check if supabase client is available
-    if (!supabase) {
-      console.warn('Supabase client not available, using static data');
-      return getStaticOrders();
-    }
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*');
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*');
+  if (error) {
+    throw new Error(`Error fetching orders: ${error.message}`);
+  }
 
-    if (error) {
-      console.error('Error fetching orders:', error);
-      // Fallback to static data if API fails
-      return getStaticOrders();
-    }
+  // Transform data to match the expected structure
+  const orders: OrderHistory[] = data?.map((order) => ({
+    id: order.id,
+    items: order.items, // Assuming items is stored as JSON
+    total: order.total,
+    date: order.date,
+    deliveryTime: order.delivery_time,
+  })) || [];
 
-    // Transform data to match the expected structure
-    const orders: OrderHistory[] = data?.map((order) => ({
-      id: order.id,
-      items: order.items, // Assuming items is stored as JSON
+  return orders;
+};
+
+// Function to create a new order
+export const createOrder = async (order: Omit<OrderHistory, 'id'>): Promise<OrderHistory> => {
+  const { data, error } = await supabase
+    .from('orders')
+    .insert({
+      items: order.items,
       total: order.total,
       date: order.date,
-      deliveryTime: order.delivery_time,
-    })) || [];
+      delivery_time: order.deliveryTime,
+    })
+    .select()
+    .single();
 
-    return orders;
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    // Fallback to static data
-    return getStaticOrders();
+  if (error) {
+    throw new Error(`Error creating order: ${error.message}`);
   }
+
+  return {
+    id: data.id,
+    items: data.items,
+    total: data.total,
+    date: data.date,
+    deliveryTime: data.delivery_time,
+  };
+};
+
+// Function to update an order
+export const updateOrder = async (id: string, updates: Partial<OrderHistory>): Promise<OrderHistory> => {
+  const updateData: any = {};
+  if (updates.items !== undefined) updateData.items = updates.items;
+  if (updates.total !== undefined) updateData.total = updates.total;
+  if (updates.date !== undefined) updateData.date = updates.date;
+  if (updates.deliveryTime !== undefined) updateData.delivery_time = updates.deliveryTime;
+
+  const { data, error } = await supabase
+    .from('orders')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating order: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    items: data.items,
+    total: data.total,
+    date: data.date,
+    deliveryTime: data.delivery_time,
+  };
 };
 
 // Static fallback data (same as before)

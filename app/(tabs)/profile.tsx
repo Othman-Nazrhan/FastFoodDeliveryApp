@@ -1,12 +1,13 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Input } from '@/components/ui/Input';
+import { useUser } from '@/contexts/UserContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { profileStyles } from '@/styles/profileStyles';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
@@ -17,16 +18,29 @@ export default function ProfileScreen() {
   const buttonText = useThemeColor({}, 'buttonText');
   const background = useThemeColor({}, 'background');
 
+  const { state: userState, updateSettings } = useUser();
+
   const [profile, setProfile] = useState({
-    name: 'John Doe',
+    name: userState.settings.name || 'John Doe',
     email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Main St, City, State 12345',
+    phone: userState.settings.phone || '+1 (555) 123-4567',
+    address: userState.settings.address || '123 Main St, City, State 12345',
     avatar: 'https://via.placeholder.com/150',
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editProfile, setEditProfile] = useState(profile);
+
+  // Update profile when user settings change
+  useEffect(() => {
+    setProfile({
+      name: userState.settings.name || 'John Doe',
+      email: 'john.doe@example.com',
+      phone: userState.settings.phone || '+1 (555) 123-4567',
+      address: userState.settings.address || '123 Main St, City, State 12345',
+      avatar: 'https://via.placeholder.com/150',
+    });
+  }, [userState.settings]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -47,14 +61,25 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editProfile.name || !editProfile.email) {
       Alert.alert('Error', 'Name and email are required');
       return;
     }
-    setProfile(editProfile);
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+
+    try {
+      await updateSettings({
+        name: editProfile.name,
+        address: editProfile.address,
+        phone: editProfile.phone,
+      });
+      setProfile(editProfile);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
   };
 
   const handleCancel = () => {

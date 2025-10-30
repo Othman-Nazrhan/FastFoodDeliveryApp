@@ -1,4 +1,4 @@
-import { fetchPayments, mockPayments } from '@/data/payments';
+import { createPayment, fetchPayments, updatePayment } from '@/data/payments';
 import { Payment } from '@/types';
 import { useEffect, useState } from 'react';
 
@@ -7,24 +7,52 @@ export const usePayments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadPayments = async () => {
-      try {
-        setLoading(true);
-        const fetchedPayments = await fetchPayments();
-        setPayments(fetchedPayments);
-      } catch (err) {
-        setError('Failed to load payments');
-        console.error('Error loading payments:', err);
-        // Fallback to static data
-        setPayments(mockPayments);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadPayments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedPayments = await fetchPayments();
+      setPayments(fetchedPayments);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load payments';
+      setError(errorMessage);
+      console.error('Error loading payments:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadPayments();
   }, []);
+
+  const addPayment = async (paymentData: Omit<Payment, 'id'>) => {
+    try {
+      setError(null);
+      const newPayment = await createPayment(paymentData);
+      setPayments(prev => [...prev, newPayment]);
+      return newPayment;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create payment';
+      setError(errorMessage);
+      console.error('Error creating payment:', err);
+      throw err;
+    }
+  };
+
+  const modifyPayment = async (id: string, updates: Partial<Payment>) => {
+    try {
+      setError(null);
+      const updatedPayment = await updatePayment(id, updates);
+      setPayments(prev => prev.map(payment => payment.id === id ? updatedPayment : payment));
+      return updatedPayment;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update payment';
+      setError(errorMessage);
+      console.error('Error updating payment:', err);
+      throw err;
+    }
+  };
 
 
 
@@ -54,6 +82,8 @@ export const usePayments = () => {
     payments,
     loading,
     error,
+    addPayment,
+    modifyPayment,
     getPaymentById,
     getPaymentsByUser,
     getPaymentsByStatus,

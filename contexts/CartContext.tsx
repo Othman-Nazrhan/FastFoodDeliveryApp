@@ -1,6 +1,8 @@
 import { CartItem, FoodItem, OrderHistory } from '@/types';
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
 import { useNotifications } from '../hooks/use-notifications';
+import { useOrders } from '../hooks/use-orders';
+import { usePayments } from '../hooks/use-payments';
 
 interface CartState {
   items: CartItem[];
@@ -96,6 +98,7 @@ const CartContext = createContext<{
   toggleFavorite: (id: string) => void;
   rateItem: (id: string, rating: number) => void;
   getEstimatedDeliveryTime: () => number;
+  placeOrder: (paymentMethod: 'card' | 'paypal' | 'apple_pay' | 'google_pay') => Promise<OrderHistory>;
 } | null>(null);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -108,6 +111,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   const { scheduleNotification } = useNotifications();
+  const { addOrder } = useOrders();
+  const { addPayment } = usePayments();
 
   const addToCart = (item: FoodItem) => {
     dispatch({ type: 'ADD_ITEM', item });
@@ -150,6 +155,45 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'RATE_ITEM', id, rating });
   };
 
+  const placeOrder = async (paymentMethod: 'card' | 'paypal' | 'apple_pay' | 'google_pay') => {
+    try {
+      const total = getTotal();
+      const deliveryTime = getEstimatedDeliveryTime();
+
+      // Create order
+      const orderData = {
+        items: state.items,
+        total,
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        deliveryTime,
+      };
+
+      const newOrder = await addOrder(orderData);
+
+      // Create payment
+      const paymentData = {
+        userId: '1', // TODO: Get from user context
+        amount: total,
+        method: paymentMethod,
+        status: 'completed' as const,
+        date: new Date().toISOString().split('T')[0],
+        orderId: newOrder.id,
+      };
+
+      await addPayment(paymentData);
+
+      // Clear cart after successful order
+      clearCart();
+
+      scheduleNotification('Order Placed', `Your order #${newOrder.id} has been placed successfully!`);
+      return newOrder;
+    } catch (error) {
+      console.error('Error placing order:', error);
+      scheduleNotification('Order Failed', 'Failed to place order. Please try again.');
+      throw error;
+    }
+  };
+
   const getEstimatedDeliveryTime = () => {
     const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
     // Base time 15 min + 2 min per item
@@ -168,7 +212,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSelectedCategory,
       toggleFavorite,
       rateItem,
-      getEstimatedDeliveryTime
+      getEstimatedDeliveryTime,
+      placeOrder
     }}>
       {children}
     </CartContext.Provider>

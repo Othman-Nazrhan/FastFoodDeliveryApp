@@ -3,40 +3,88 @@ import { supabase } from '@/utils/supabase';
 
 // Function to fetch payments from Supabase
 export const fetchPayments = async (): Promise<Payment[]> => {
-  try {
-    // Check if supabase client is available
-    if (!supabase) {
-      console.warn('Supabase client not available, using static data');
-      return getStaticPayments();
-    }
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*');
 
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*');
-
-    if (error) {
-      console.error('Error fetching payments:', error);
-      // Fallback to static data if API fails
-      return getStaticPayments();
-    }
-
-    // Transform data to match the expected structure
-    const payments: Payment[] = data?.map((payment) => ({
-      id: payment.id,
-      userId: payment.user_id,
-      amount: payment.amount,
-      method: payment.method as Payment['method'],
-      status: payment.status as Payment['status'],
-      date: payment.date,
-      orderId: payment.order_id || undefined,
-    })) || [];
-
-    return payments;
-  } catch (error) {
-    console.error('Error fetching payments:', error);
-    // Fallback to static data
-    return getStaticPayments();
+  if (error) {
+    throw new Error(`Error fetching payments: ${error.message}`);
   }
+
+  // Transform data to match the expected structure
+  const payments: Payment[] = data?.map((payment) => ({
+    id: payment.id,
+    userId: payment.user_id,
+    amount: payment.amount,
+    method: payment.method as Payment['method'],
+    status: payment.status as Payment['status'],
+    date: payment.date,
+    orderId: payment.order_id || undefined,
+  })) || [];
+
+  return payments;
+};
+
+// Function to create a new payment
+export const createPayment = async (payment: Omit<Payment, 'id'>): Promise<Payment> => {
+  const { data, error } = await supabase
+    .from('payments')
+    .insert({
+      user_id: payment.userId,
+      amount: payment.amount,
+      method: payment.method,
+      status: payment.status,
+      date: payment.date,
+      order_id: payment.orderId,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error creating payment: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    amount: data.amount,
+    method: data.method as Payment['method'],
+    status: data.status as Payment['status'],
+    date: data.date,
+    orderId: data.order_id || undefined,
+  };
+};
+
+// Function to update a payment
+export const updatePayment = async (id: string, updates: Partial<Payment>): Promise<Payment> => {
+  const updateData: any = {};
+  if (updates.userId !== undefined) updateData.user_id = updates.userId;
+  if (updates.amount !== undefined) updateData.amount = updates.amount;
+  if (updates.method !== undefined) updateData.method = updates.method;
+  if (updates.status !== undefined) updateData.status = updates.status;
+  if (updates.date !== undefined) updateData.date = updates.date;
+  if (updates.orderId !== undefined) updateData.order_id = updates.orderId;
+
+  const { data, error } = await supabase
+    .from('payments')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating payment: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    amount: data.amount,
+    method: data.method as Payment['method'],
+    status: data.status as Payment['status'],
+    date: data.date,
+    orderId: data.order_id || undefined,
+  };
 };
 
 // Static fallback data (same as before)
