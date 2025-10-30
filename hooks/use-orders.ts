@@ -1,6 +1,6 @@
 import { fetchOrders, mockOrderHistory } from '@/data/orders';
 import { OrderHistory } from '@/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useOrders = () => {
   const [orders, setOrders] = useState<OrderHistory[]>([]);
@@ -26,8 +26,7 @@ export const useOrders = () => {
     loadOrders();
   }, []);
 
-  // Fallback to static data if API fails
-  const fallbackOrders = useMemo(() => mockOrderHistory, []);
+
 
   const getOrderById = (id: string): OrderHistory | undefined => {
     return orders.find(order => order.id === id);

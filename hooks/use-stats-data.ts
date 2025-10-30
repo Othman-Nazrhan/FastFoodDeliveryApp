@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 import { useOrders } from './use-orders';
 
 export const useStatsData = (filter: 'all' | 'week' | 'month' = 'all') => {
-  const { orders: orderHistory, loading, error } = useOrders();
+  const { orders: orderHistory } = useOrders();
 
   const filteredOrderHistory = useMemo(() => filterOrdersByDateRange(orderHistory, filter), [orderHistory, filter]);
 

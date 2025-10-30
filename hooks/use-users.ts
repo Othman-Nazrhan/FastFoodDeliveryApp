@@ -1,6 +1,6 @@
 import { fetchUsers, mockUsers } from '@/data/users';
 import { User } from '@/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -25,9 +25,6 @@ export const useUsers = () => {
 
     loadUsers();
   }, []);
-
-  // Fallback to static data if API fails
-  const fallbackUsers = useMemo(() => mockUsers, []);
 
   const getUserById = (id: string): User | undefined => {
     return users.find(user => user.id === id);

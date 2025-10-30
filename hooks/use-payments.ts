@@ -1,6 +1,6 @@
 import { fetchPayments, mockPayments } from '@/data/payments';
 import { Payment } from '@/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const usePayments = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -26,8 +26,7 @@ export const usePayments = () => {
     loadPayments();
   }, []);
 
-  // Fallback to static data if API fails
-  const fallbackPayments = useMemo(() => mockPayments, []);
+
 
   const getPaymentById = (id: string): Payment | undefined => {
     return payments.find(payment => payment.id === id);
