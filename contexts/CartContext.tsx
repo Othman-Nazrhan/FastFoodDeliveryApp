@@ -1,5 +1,6 @@
 import { CartItem, FoodItem, OrderHistory } from '@/types';
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
+import { useNotifications } from '../hooks/use-notifications';
 
 interface CartState {
   items: CartItem[];
@@ -106,12 +107,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     orderHistory: [],
   });
 
+  const { scheduleNotification } = useNotifications();
+
   const addToCart = (item: FoodItem) => {
     dispatch({ type: 'ADD_ITEM', item });
+    scheduleNotification('Item Added', `${item.name} has been added to your cart.`);
   };
 
   const removeFromCart = (id: string) => {
+    const item = state.items.find(item => item.id === id);
     dispatch({ type: 'REMOVE_ITEM', id });
+    if (item) {
+      scheduleNotification('Item Removed', `${item.name} has been removed from your cart.`);
+    }
   };
 
   const increaseQuantity = (id: string) => {

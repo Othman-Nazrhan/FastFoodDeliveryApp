@@ -1,9 +1,33 @@
-import { mockOrderHistory } from '@/data/orders';
+import { fetchOrders, mockOrderHistory } from '@/data/orders';
 import { OrderHistory } from '@/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const useOrders = () => {
-  const orders = useMemo(() => mockOrderHistory, []);
+  const [orders, setOrders] = useState<OrderHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const fetchedOrders = await fetchOrders();
+        setOrders(fetchedOrders);
+      } catch (err) {
+        setError('Failed to load orders');
+        console.error('Error loading orders:', err);
+        // Fallback to static data
+        setOrders(mockOrderHistory);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  // Fallback to static data if API fails
+  const fallbackOrders = useMemo(() => mockOrderHistory, []);
 
   const getOrderById = (id: string): OrderHistory | undefined => {
     return orders.find(order => order.id === id);
@@ -23,6 +47,8 @@ export const useOrders = () => {
 
   return {
     orders,
+    loading,
+    error,
     getOrderById,
     getOrdersByUser,
     getTotalOrders,

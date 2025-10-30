@@ -1,9 +1,33 @@
-import { mockPayments } from '@/data/payments';
+import { fetchPayments, mockPayments } from '@/data/payments';
 import { Payment } from '@/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const usePayments = () => {
-  const payments = useMemo(() => mockPayments, []);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadPayments = async () => {
+      try {
+        setLoading(true);
+        const fetchedPayments = await fetchPayments();
+        setPayments(fetchedPayments);
+      } catch (err) {
+        setError('Failed to load payments');
+        console.error('Error loading payments:', err);
+        // Fallback to static data
+        setPayments(mockPayments);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPayments();
+  }, []);
+
+  // Fallback to static data if API fails
+  const fallbackPayments = useMemo(() => mockPayments, []);
 
   const getPaymentById = (id: string): Payment | undefined => {
     return payments.find(payment => payment.id === id);
@@ -29,6 +53,8 @@ export const usePayments = () => {
 
   return {
     payments,
+    loading,
+    error,
     getPaymentById,
     getPaymentsByUser,
     getPaymentsByStatus,

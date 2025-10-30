@@ -1,6 +1,44 @@
 import { OrderHistory } from '@/types';
+import { supabase } from '@/utils/supabase';
 
-export const mockOrderHistory: OrderHistory[] = [
+// Function to fetch orders from Supabase
+export const fetchOrders = async (): Promise<OrderHistory[]> => {
+  try {
+    // Check if supabase client is available
+    if (!supabase) {
+      console.warn('Supabase client not available, using static data');
+      return getStaticOrders();
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching orders:', error);
+      // Fallback to static data if API fails
+      return getStaticOrders();
+    }
+
+    // Transform data to match the expected structure
+    const orders: OrderHistory[] = data?.map((order) => ({
+      id: order.id,
+      items: order.items, // Assuming items is stored as JSON
+      total: order.total,
+      date: order.date,
+      deliveryTime: order.delivery_time,
+    })) || [];
+
+    return orders;
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    // Fallback to static data
+    return getStaticOrders();
+  }
+};
+
+// Static fallback data (same as before)
+const getStaticOrders = (): OrderHistory[] => [
   {
     id: '1',
     items: [
@@ -77,3 +115,6 @@ export const mockOrderHistory: OrderHistory[] = [
     deliveryTime: 20,
   },
 ];
+
+// Export static data for backward compatibility (deprecated, use fetchOrders instead)
+export const mockOrderHistory: OrderHistory[] = getStaticOrders();

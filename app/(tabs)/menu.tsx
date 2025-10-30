@@ -2,16 +2,17 @@ import SearchBar from '@/components/SearchBar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useCart } from '@/contexts/CartContext';
-import { FoodItem, foodItems } from '@/data/foodItems';
+import { fetchFoodItems } from '@/data/foodItems';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { menuStyles } from '@/styles/menuStyles';
+import { FoodItem } from '@/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function MenuScreen() {
   const { state, addToCart, toggleFavorite } = useCart();
@@ -32,8 +33,27 @@ export default function MenuScreen() {
     price: '',
     image: '',
   });
+  const [foodItems, setFoodItems] = useState<{ [key: string]: FoodItem[] }>({});
+  const [loading, setLoading] = useState(true);
 
-  const allItems = useMemo(() => selectedCategory ? foodItems[selectedCategory] || [] : [], [selectedCategory]);
+  useEffect(() => {
+    const loadFoodItems = async () => {
+      try {
+        setLoading(true);
+        const fetchedItems = await fetchFoodItems();
+        setFoodItems(fetchedItems);
+      } catch (error) {
+        console.error('Error loading food items:', error);
+        // Fallback handled in fetchFoodItems
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFoodItems();
+  }, []);
+
+  const allItems = useMemo(() => selectedCategory ? foodItems[selectedCategory] || [] : [], [selectedCategory, foodItems]);
   const filteredItems = useMemo(() => {
     if (!searchQuery) return allItems;
     return allItems.filter((item: FoodItem) =>
@@ -179,15 +199,22 @@ export default function MenuScreen() {
           </TouchableOpacity>
         </ThemedView>
         <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
-        <FlatList
-          data={filteredItems}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={menuStyles.itemsList}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-        />
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={primary} />
+            <ThemedText type="default" style={{ marginTop: 10 }}>Loading menu...</ThemedText>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={menuStyles.itemsList}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
         {/* Add Item Modal */}
         <Modal visible={showAddModal} animationType="slide" transparent>

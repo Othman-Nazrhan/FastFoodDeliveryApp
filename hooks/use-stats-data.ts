@@ -1,17 +1,20 @@
 import { CategoryData, OrderHistory, SalesData, TopProduct } from '@/types';
 import {
-    calculateCategoryData,
-    calculateSalesData,
-    calculateTopProducts,
-    calculateTotalRevenue,
-    filterOrdersByDateRange,
-    getFavoriteBurger,
-    getPendingOrdersCount,
-    getRecentOrders
+  calculateCategoryData,
+  calculateSalesData,
+  calculateTopProducts,
+  calculateTotalRevenue,
+  filterOrdersByDateRange,
+  getFavoriteBurger,
+  getPendingOrdersCount,
+  getRecentOrders
 } from '@/utils/dataUtils';
 import { useMemo } from 'react';
+import { useOrders } from './use-orders';
 
-export const useStatsData = (orderHistory: OrderHistory[], filter: 'all' | 'week' | 'month' = 'all') => {
+export const useStatsData = (filter: 'all' | 'week' | 'month' = 'all') => {
+  const { orders: orderHistory, loading, error } = useOrders();
+
   const filteredOrderHistory = useMemo(() => filterOrdersByDateRange(orderHistory, filter), [orderHistory, filter]);
 
   const salesData: SalesData[] = useMemo(() => calculateSalesData(filteredOrderHistory), [filteredOrderHistory]);

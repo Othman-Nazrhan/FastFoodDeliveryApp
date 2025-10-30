@@ -1,15 +1,56 @@
-export interface FoodItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description: string;
-  rating: number;
-  isVegetarian?: boolean;
-}
+import { FoodItem } from '@/types';
+import { supabase } from '@/utils/supabase';
 
-export const foodItems: { [key: string]: FoodItem[] } = {
+// Function to fetch food items from Supabase
+export const fetchFoodItems = async (): Promise<{ [key: string]: FoodItem[] }> => {
+  try {
+    // Check if supabase client is available
+    if (!supabase) {
+      console.warn('Supabase client not available, using static data');
+      return getStaticFoodItems();
+    }
+
+    const { data, error } = await supabase
+      .from('food_items')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching food items:', error);
+      // Fallback to static data if API fails
+      return getStaticFoodItems();
+    }
+
+    // Transform data to match the expected structure
+    const foodItems: { [key: string]: FoodItem[] } = {};
+
+    data?.forEach((item) => {
+      const foodItem: FoodItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        category: item.category,
+        description: item.description,
+        rating: item.rating,
+        isVegetarian: item.is_vegetarian || undefined,
+      };
+
+      if (!foodItems[item.category]) {
+        foodItems[item.category] = [];
+      }
+      foodItems[item.category].push(foodItem);
+    });
+
+    return foodItems;
+  } catch (error) {
+    console.error('Error fetching food items:', error);
+    // Fallback to static data
+    return getStaticFoodItems();
+  }
+};
+
+// Static fallback data (same as before)
+const getStaticFoodItems = (): { [key: string]: FoodItem[] } => ({
   burgers: [
     {
       id: '1',
@@ -118,4 +159,7 @@ export const foodItems: { [key: string]: FoodItem[] } = {
       isVegetarian: true,
     },
   ],
-};
+});
+
+// Export static data for backward compatibility (deprecated, use fetchFoodItems instead)
+export const foodItems: { [key: string]: FoodItem[] } = getStaticFoodItems();

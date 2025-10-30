@@ -1,9 +1,33 @@
-import { mockUsers } from '@/data/users';
+import { fetchUsers, mockUsers } from '@/data/users';
 import { User } from '@/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const useUsers = () => {
-  const users = useMemo(() => mockUsers, []);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        const fetchedUsers = await fetchUsers();
+        setUsers(fetchedUsers);
+      } catch (err) {
+        setError('Failed to load users');
+        console.error('Error loading users:', err);
+        // Fallback to static data
+        setUsers(mockUsers);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, []);
+
+  // Fallback to static data if API fails
+  const fallbackUsers = useMemo(() => mockUsers, []);
 
   const getUserById = (id: string): User | undefined => {
     return users.find(user => user.id === id);
@@ -24,6 +48,8 @@ export const useUsers = () => {
 
   return {
     users,
+    loading,
+    error,
     getUserById,
     getTotalUsers,
     getTotalSpentByUser,

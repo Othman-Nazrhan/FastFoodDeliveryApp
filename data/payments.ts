@@ -1,6 +1,46 @@
 import { Payment } from '@/types';
+import { supabase } from '@/utils/supabase';
 
-export const mockPayments: Payment[] = [
+// Function to fetch payments from Supabase
+export const fetchPayments = async (): Promise<Payment[]> => {
+  try {
+    // Check if supabase client is available
+    if (!supabase) {
+      console.warn('Supabase client not available, using static data');
+      return getStaticPayments();
+    }
+
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching payments:', error);
+      // Fallback to static data if API fails
+      return getStaticPayments();
+    }
+
+    // Transform data to match the expected structure
+    const payments: Payment[] = data?.map((payment) => ({
+      id: payment.id,
+      userId: payment.user_id,
+      amount: payment.amount,
+      method: payment.method as Payment['method'],
+      status: payment.status as Payment['status'],
+      date: payment.date,
+      orderId: payment.order_id || undefined,
+    })) || [];
+
+    return payments;
+  } catch (error) {
+    console.error('Error fetching payments:', error);
+    // Fallback to static data
+    return getStaticPayments();
+  }
+};
+
+// Static fallback data (same as before)
+const getStaticPayments = (): Payment[] => [
   {
     id: '1',
     userId: '1',
@@ -65,3 +105,6 @@ export const mockPayments: Payment[] = [
     orderId: '7',
   },
 ];
+
+// Export static data for backward compatibility (deprecated, use fetchPayments instead)
+export const mockPayments: Payment[] = getStaticPayments();
